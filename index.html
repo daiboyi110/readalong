@@ -222,6 +222,11 @@
     .btn-speed:hover { border-color:var(--primary-lt); color:var(--primary); }
 
     #practicePlayer { display:none; margin-top:12px; width:100%; height:34px; }
+    .word-result       { margin-top:12px; padding:10px 14px; border-radius:8px; font-size:.9rem; font-weight:600; display:none; }
+    .word-result.correct { display:block; background:#d1fae5; color:#065f46; }
+    .word-result.wrong   { display:block; background:#fee2e2; color:#991b1b; }
+    #practiceListening { display:none; align-items:center; gap:7px; font-size:.85rem; color:var(--primary); font-weight:600; }
+    #practiceListening.show { display:flex; }
 
     .rec-indicator       { display:none; align-items:center; gap:6px; font-size:.8rem; color:var(--danger); font-weight:600; }
     .rec-indicator.show  { display:flex; }
@@ -258,6 +263,7 @@
   <div class="card">
     <div class="card-label" id="passageGridLabel">Choose a Passage</div>
     <div class="passage-grid" id="passageGrid"></div>
+    <div id="updatePassagesBtn" style="margin-top:14px;text-align:center;"></div>
   </div>
 
   <!-- Reading passage -->
@@ -351,17 +357,16 @@
     <!-- User attempt -->
     <div class="modal-section">
       <div class="modal-sec-label">
-        🎤 Your Pronunciation
-        <span class="rec-indicator" id="practiceRecInd"><span class="rec-dot"></span> Recording</span>
+        🎤 Check Your Pronunciation
+        <span id="practiceListening"><span class="rec-dot"></span> Listening…</span>
       </div>
       <div class="btn-row2">
-        <button class="btn-danger" id="practiceRecBtn" onclick="togglePracticeRec()">🎤 Record</button>
-        <span class="timer-txt" id="practiceTimerTxt"></span>
+        <button class="btn-danger" id="practiceRecBtn" onclick="startWordCheck()">🎤 Say it</button>
       </div>
-      <audio id="practicePlayer" controls></audio>
+      <div class="word-result" id="wordResult"></div>
     </div>
 
-    <div style="font-size:.76rem;color:var(--muted);margin-top:-8px;">Max 5 seconds · compare your attempt with the correct pronunciation above</div>
+    <div style="font-size:.76rem;color:var(--muted);margin-top:-8px;">Tap <strong>Say it</strong>, speak the word, and see if it was recognised correctly.</div>
   </div>
 </div>
 
@@ -371,88 +376,122 @@
 // ═══════════════════════════════════════════════════════════
 const THEMES = [
   {
-    id:'stories', name:'📖 Stories',
+    id:'informative', name:'📚 Informative',
     passages:[
-      {
-        id:'s1', title:'The Tortoise and the Hare', level:'easy',
-        text:'Once upon a time a hare challenged a tortoise to a race. Everyone laughed because the tortoise was so slow. The hare sprinted ahead and soon he was far in the lead. Feeling sure of himself, he stopped under a shady tree and fell fast asleep. The tortoise never stopped. One steady step at a time, he plodded along the dusty path. When the hare finally woke up he dashed to the finish line as fast as his legs could carry him. But the tortoise was already there, smiling quietly. Slow and steady wins the race.'
-      },
-      {
-        id:'s2', title:'The Selfish Giant', level:'medium',
-        text:'Every afternoon when children came home from school they played in the giant\'s beautiful garden. It had soft green grass and peach trees that burst into blossom every spring. But one day the giant returned from a long journey and drove the children away. He built a high stone wall around the garden and put up a sign that said keep out. After that spring never came to his garden. Snow covered the flowers and frost crept across the trees. The birds refused to sing. The giant sat alone and cold inside his great house. One morning he heard a delicate sound drifting through the window. He looked out and saw that the children had crept back through a small hole in the wall. In every corner where a child had climbed, the trees had burst into blossom.'
-      },
-      {
-        id:'s3', title:'The Lighthouse Keeper', level:'hard',
-        text:'For forty years Thomas had kept the lamp burning on the rocky headland above the bay. Sailors from distant ports knew his lighthouse as a faithful star. On the night of the great storm, when waves crashed thirty feet above the dock and the wind howled like something living, Thomas climbed the iron staircase for what he sensed would be the last time. He had kept his promise to the sea and to the men who sailed it. What no one in the village ever knew was that on a stormy night long ago, his own father\'s ship had been guided safely into harbor by that same light. Every night since then, keeping the lamp had been not merely a duty but an act of love quietly repaid across the years.'
-      }
+      { id:'i1', title:'The Water Cycle', level:'easy',
+        text:'Water is always moving. It travels from the ground up into the sky and falls back down again in a never-ending cycle. When the sun heats water in rivers, lakes, and oceans, it turns into water vapour and rises into the air. This process is called evaporation. High up in the sky the vapour cools and forms tiny droplets that gather together to make clouds. This is called condensation. When the droplets become too heavy they fall back to earth as rain or snow. This is called precipitation. The water then flows into streams and rivers, soaks into the ground, or collects in lakes and oceans. Then the whole cycle begins again. Without the water cycle life on Earth could not exist.' },
+      { id:'i2', title:'How Vaccines Work', level:'medium',
+        text:'Vaccines are one of the most powerful tools in modern medicine. They work by training your immune system to recognize and fight specific diseases without you having to get sick first. When a vaccine is introduced into your body it contains either a weakened or inactive form of a virus or bacteria, or sometimes just a small piece of the pathogen such as a protein. Your immune system responds by producing antibodies and creating memory cells. These memory cells remain in your body long after the initial response. If you later encounter the real disease your immune system recognizes it immediately and responds quickly enough to prevent serious illness. This is why vaccinated populations experience far fewer outbreaks of dangerous diseases. Vaccines protect not only the individual but also the wider community through a principle known as herd immunity.' },
+      { id:'i3', title:'The Nervous System', level:'hard',
+        text:'The human nervous system is a remarkably sophisticated biological network responsible for coordinating virtually every function of the body. It is divided into two primary components: the central nervous system, comprising the brain and spinal cord, and the peripheral nervous system, which extends throughout the body via a vast web of nerves. Information travels through this network in the form of electrical signals called nerve impulses, which are transmitted between neurons across junctions called synapses. The brain processes incoming signals with extraordinary speed, integrating sensory data, regulating involuntary functions such as breathing and heart rate, and generating the conscious thoughts and voluntary movements that define our daily experience. The autonomic nervous system, a subdivision of the peripheral nervous system, governs involuntary processes and is itself divided into the sympathetic system, which prepares the body for action, and the parasympathetic system, which promotes rest and recovery.' },
+      { id:'i4', title:'How Bees Make Honey', level:'easy',
+        text:'Bees are remarkable insects that work together to make one of nature\'s sweetest foods. Worker bees fly from flower to flower collecting nectar, a sweet liquid found inside blooms. They carry the nectar back to the hive in a special honey stomach. Inside the hive they pass the nectar to other worker bees who chew it and pass it along several times. This process adds enzymes that break down the sugars in the nectar. The bees then spread the nectar into honeycomb cells and fan it with their wings to evaporate the water. When enough water has evaporated the honey is thick and ready. The bees seal each cell with a wax cap to keep it fresh. A healthy hive can produce more than fifty pounds of honey in a single year.' },
+      { id:'i5', title:'The Printing Press', level:'medium',
+        text:'Before Johannes Gutenberg invented the printing press around 1440, books were copied by hand, a process that took months or even years. Only the very wealthy or the Church could afford them. Gutenberg\'s invention used movable metal type that could be arranged to form any text, inked, and pressed onto paper in large quantities. Within decades of its invention printing presses had spread across Europe and millions of books were in circulation. For the first time in history information could travel rapidly across cities and countries. The printing press played a direct role in the Protestant Reformation, the Scientific Revolution, and the spread of literacy. It democratized knowledge, breaking the monopoly that religious and royal institutions had long held over education and information. Many historians regard it as the single most transformative technological invention of the last thousand years.' },
+      { id:'i6', title:'Climate and the Carbon Cycle', level:'hard',
+        text:'The carbon cycle is the natural process by which carbon moves between the atmosphere, oceans, soil, and living organisms. For millions of years this cycle maintained a relatively stable balance, with carbon released through volcanic activity and respiration being absorbed by plants, oceans, and soil. Human industrial activity has disrupted this balance profoundly. The burning of fossil fuels releases carbon dioxide that has been stored underground for hundreds of millions of years, effectively injecting ancient carbon into the modern atmosphere far faster than natural systems can absorb it. Atmospheric concentrations of carbon dioxide have risen by more than forty percent since the Industrial Revolution, trapping additional heat through the greenhouse effect. The consequences are already visible in rising global temperatures, shifting precipitation patterns, retreating glaciers, and more frequent extreme weather events. Addressing climate change requires not only reducing emissions but also restoring the natural carbon sinks such as forests, wetlands, and healthy oceans that have historically buffered the cycle.' }
+    ]
+  },
+  {
+    id:'persuasive', name:'🎯 Persuasive',
+    passages:[
+      { id:'p1', title:'Why Reading Every Day Matters', level:'easy',
+        text:'Reading every day is one of the best habits you can build. Even just fifteen or twenty minutes a day can make a big difference. When you read regularly you learn new words and ideas. Your brain gets stronger because reading challenges you to think and imagine. Books can take you to places you have never been and introduce you to people you could never meet in real life. Reading helps you understand the world better and makes it easier to express your own thoughts clearly. Studies show that people who read often do better at school and at work. They are also more creative and better at solving problems. Reading before bed can even help you sleep better. There are books about every topic imaginable. Whatever you are curious about there is a book waiting for you. Make time to read every single day.' },
+      { id:'p2', title:'The Case for Regular Exercise', level:'medium',
+        text:'We live in an age where sitting still has become the norm. Most of us spend the majority of our waking hours seated at desks, in cars, or on sofas. Yet the evidence for the transformative benefits of regular physical activity has never been stronger. Exercise reduces the risk of heart disease, type two diabetes, and several forms of cancer. It strengthens bones and muscles, improves sleep quality, and boosts immune function. Perhaps most compellingly, physical activity has a profound effect on mental health. Regular exercise reduces anxiety and depression as effectively as medication in many cases, and it does so without side effects. The barrier to beginning is low. Research consistently shows that even thirty minutes of moderate activity five days a week is enough to produce significant health benefits. Walking, cycling, swimming, or dancing all qualify. The question is not whether exercise is worth the time. The question is whether we can afford to keep neglecting it.' },
+      { id:'p3', title:'Why Critical Thinking Matters Most', level:'hard',
+        text:'In an era saturated with information, the ability to think critically has become not merely an academic virtue but a survival skill. We are exposed daily to an unprecedented volume of claims, arguments, data, and narratives, many of which are incomplete, misleading, or deliberately false. Without the capacity to evaluate sources, identify logical fallacies, distinguish correlation from causation, and resist the pull of cognitive biases, we become passive consumers of whatever information confirms what we already believe. The consequences are not abstract. Poor critical thinking at the individual level leads to poor decisions in health, finance, and relationships. At the collective level it enables the spread of misinformation, the manipulation of democratic processes, and the erosion of shared standards of evidence. Teaching people to think critically does not make them cynical or contrarian. It makes them more intellectually honest, more open to revision, and more capable of engaging productively with perspectives different from their own.' },
+      { id:'p4', title:'Why Sleep Matters', level:'easy',
+        text:'Sleep is not a luxury. It is something your body and brain need to work properly. When you do not get enough sleep everything feels harder. You find it more difficult to concentrate, remember things, and make good decisions. You feel more irritable and less patient with the people around you. Over time not getting enough sleep can cause serious health problems including a higher risk of heart disease and diabetes. Most adults need between seven and nine hours of sleep each night. Children and teenagers need even more. Good sleep starts with a regular bedtime routine. Going to bed at the same time each night and keeping your bedroom cool and dark can make a real difference. Put your phone away at least an hour before bed. Your brain needs time to slow down and prepare for rest. When you sleep well you feel better, think better, and live better.' },
+      { id:'p5', title:'Benefits of a Second Language', level:'medium',
+        text:'Learning a second language is one of the most rewarding investments you can make in yourself, and the benefits extend far beyond being able to order food abroad. Research consistently shows that bilingual individuals have stronger executive function, meaning they are better at switching between tasks, filtering out irrelevant information, and sustaining attention. Learning a language forces the brain to manage two competing systems simultaneously, building cognitive flexibility that carries over into other areas of life. There is also compelling evidence that bilingualism delays the onset of dementia by several years, suggesting that the mental exercise of operating in two languages builds cognitive reserves. Beyond the neurological benefits, speaking another language opens doors professionally and socially. It allows deeper engagement with other cultures, fosters empathy, and makes you a more effective communicator in your first language as well.' },
+      { id:'p6', title:'Protecting Biodiversity', level:'hard',
+        text:'Biodiversity, the extraordinary variety of life that inhabits our planet, is not merely a source of aesthetic wonder. It is the foundation upon which all human prosperity rests. Healthy ecosystems regulate the climate, purify water, pollinate crops, cycle nutrients through the soil, and buffer communities against floods and disease. Each species plays a functional role in these systems, and when species are lost the systems become less stable and less resilient. We are currently presiding over what scientists describe as the sixth mass extinction event in Earth\'s history, driven not by a meteor or volcanic catastrophe but by habitat destruction, pollution, overexploitation, invasive species, and climate change. The economic argument for protecting biodiversity is alone compelling: ecosystem services have been valued at tens of trillions of dollars annually. But the ethical case is equally powerful. We share this planet with millions of species, none of which evolved to serve our purposes. Protecting biodiversity is a moral obligation and a practical necessity for the long-term survival of human civilization.' }
+    ]
+  },
+  {
+    id:'entertaining', name:'🎭 Entertaining',
+    passages:[
+      { id:'e1', title:'The Day I Tried to Bake a Cake', level:'easy',
+        text:'I had never baked a cake before but I was certain it would be easy. How hard could it be? I followed the recipe carefully, or so I thought. I mixed the flour, eggs, sugar, and butter together in a big bowl and poured it into the tin. Forty minutes later the kitchen was filled with a strange smell and a cloud of smoke. I opened the oven to find something that looked less like a cake and more like a small volcano. The outside was completely black. The inside, when I cut it open, was still raw and wobbly. My dog took one sniff and walked away. I later discovered that I had used salt instead of sugar and forgotten to add the baking powder altogether. I ordered a pizza that evening. But I learned two very important lessons that day. Always read the labels. And always have a backup plan.' },
+      { id:'e2', title:'My Most Embarrassing Travel Story', level:'medium',
+        text:'I have traveled to many places and collected many stories but none quite compares to the afternoon I spent lost in a foreign city with a phone that had run out of battery, a phrase book in the wrong language, and an urgent need to find a bathroom. I had confidently told my travel companions that I knew a shortcut back to the hotel. Twenty minutes later I was standing in what appeared to be someone\'s private garden, being observed by a very unimpressed goat. A kind elderly woman eventually took pity on me and through an elaborate performance of mime that I will never forget directed me to both the bathroom and the correct street. When I finally made it back to the hotel my companions had already eaten dinner, ordered dessert, and were halfway through a card game. They have never let me forget the shortcut. And honestly, they should not.' },
+      { id:'e3', title:'The Art of a Perfect Road Trip', level:'hard',
+        text:'There is a particular kind of freedom that belongs only to the open road. Not the frantic freedom of an airport departure gate, or the organized freedom of a package tour with a laminated itinerary. The freedom of a road trip is messier, slower, and infinitely more interesting. It is the freedom of the wrong turn that leads you to a roadside diner where the coffee is terrible but the owner tells you a story that stays with you for years. The freedom of arriving somewhere you had no intention of visiting and finding it inexplicably perfect. The best road trips share a handful of qualities. The route is planned loosely enough to allow for deviation. The playlist is long enough to accommodate every mood from melancholy to euphoric. And the company, if there is any, is the kind that can sit in comfortable silence for two hours and then talk continuously for the next two. Everything else, including the destination, is negotiable. The journey is the point.' },
+      { id:'e4', title:'A Very Unexpected Pet', level:'easy',
+        text:'Last spring my neighbour knocked on my door holding a cardboard box with small holes in the lid. She was moving abroad and needed someone to look after her pet for two weeks. I assumed it would be a cat or perhaps a rabbit. It was not. Inside the box was a tortoise named Gerald who was approximately forty years old, weighed more than I expected, and had a personality that can only be described as deeply unimpressed with everything. Gerald did not want to eat the lettuce I offered. Gerald did not want to explore the garden. Gerald did not appear to want anything at all except to sit under the radiator and glare at me. After two weeks I returned him when she came back. She asked if he had been any trouble. I said no. Gerald stared at me with his ancient knowing eyes. I am fairly sure we both knew I was lying.' },
+      { id:'e5', title:'The Night Everything Went Wrong', level:'medium',
+        text:'There are evenings when nothing goes according to plan, and then there are evenings so comprehensively derailed that they eventually become stories you tell for the rest of your life. My friend\'s thirtieth birthday dinner was the second kind. The reservation had been made at the wrong restaurant on the wrong street in the wrong part of the city. We discovered this only after arriving and finding a completely different party in full celebration at our reserved table. The restaurant we had actually booked had given our table to someone else when we failed to appear on time. We ended up eating in a tiny noodle shop that had exactly three tables, mismatched chairs, and no menu beyond whatever the owner felt like cooking that evening. It turned out to be the best meal any of us had eaten in years. My friend says it is the only birthday dinner she has never forgotten.' },
+      { id:'e6', title:'Why I Will Never Trust a GPS Again', level:'hard',
+        text:'I should say at the outset that I have nothing against technology. I use it enthusiastically and gratefully in most areas of my life. But there exists between me and GPS navigation a specific and deeply personal conflict that began on a foggy Tuesday morning when I was directed, with absolute confidence and zero irony, straight into a lake. Not metaphorically. Literally. The device informed me that I should continue straight ahead for three hundred metres, and I, having not yet developed the healthy scepticism that I now bring to all machine-generated instructions, followed its advice to the point where the road ended and the water began. My car survived. My dignity did not. There is a lesson here about the difference between data and wisdom, about the limitations of systems that know coordinates but not context. Navigation requires judgement. Judgement, unfortunately, has not yet been successfully uploaded.' }
+    ]
+  },
+  {
+    id:'demonstrative', name:'🛠 Demonstrative',
+    passages:[
+      { id:'d1', title:'How to Make a Cup of Tea', level:'easy',
+        text:'Making a perfect cup of tea is simple when you follow a few easy steps. Start by filling your kettle with fresh cold water and bringing it to a boil. While the water is heating, warm your mug by rinsing it with a little hot water and then emptying it. This helps your tea stay warm longer. Place your tea bag into the mug. When the water has boiled pour it over the tea bag and let it steep for three to five minutes, depending on how strong you like your tea. The longer you leave it the stronger the flavour will be. Remove the tea bag without squeezing it, as squeezing can make the tea taste bitter. Add milk, sugar, or lemon if you prefer. Stir gently and let it cool for a moment before drinking. The best cup of tea is the one made exactly to your taste.' },
+      { id:'d2', title:'How to Give a Great First Impression', level:'medium',
+        text:'First impressions form within seconds and can shape a relationship for years. Fortunately the elements that create a strong first impression are straightforward and entirely within your control. Begin with your appearance. You do not need to dress expensively, but dressing appropriately for the context signals that you have put thought into the encounter. When you meet someone make steady and natural eye contact and offer a firm, brief handshake. Smile genuinely rather than performing a fixed social grin. When the other person speaks, listen actively. This means resisting the urge to formulate your response while they are still talking. Nod, maintain open body language, and ask a follow-up question that shows you have actually heard what they said. Use the person\'s name once during the early part of the conversation. The most powerful thing you can do in any introduction is make the other person feel seen and worth listening to.' },
+      { id:'d3', title:'How to Manage Your Time', level:'hard',
+        text:'Effective time management is not about cramming more activity into each day. It is about ensuring that the time you spend is directed toward the things that matter most. The first and most important step is to distinguish between tasks that are urgent and those that are important, because these two categories overlap far less often than most people assume. Email, interruptions, and minor requests create a constant sense of urgency while consuming time that could be given to work with lasting value. Blocking time in your calendar for deep focused work before you allow reactive tasks to intrude is among the most powerful practices available. Equally important is learning to say no clearly and without apology when requests do not align with your priorities. Review your commitments regularly and ruthlessly. An obligation that made sense six months ago may no longer deserve your time. Managing your time well is ultimately an act of managing your attention, and attention is the most finite resource any of us possesses.' },
+      { id:'d4', title:'How to Plant a Seed', level:'easy',
+        text:'Planting a seed is one of the most satisfying things you can do, and it is easier than you might think. Start by choosing a small pot with a hole in the bottom for drainage. Fill it with potting soil, leaving about two centimetres of space at the top. Read the seed packet to find out how deep to plant your seed. As a general rule small seeds go just below the surface and larger seeds go deeper. Make a small hole with your finger, drop in one or two seeds, and cover them gently with soil. Give the pot a good drink of water but do not flood it. Seeds need moisture to wake up and start growing. Place the pot in a warm spot with plenty of natural light. Check the soil every day and water it lightly whenever it feels dry. In just a few days you should see a small green shoot pushing through the soil. That first sign of life is one of the most encouraging sights in the world.' },
+      { id:'d5', title:'How to Write a Compelling Email', level:'medium',
+        text:'Most of the emails we send and receive every day are longer than they need to be, less clear than they could be, and less likely to produce a response than their senders hope. Writing a compelling email comes down to a handful of consistent principles. Start with a subject line that tells the reader exactly what the email is about and why it matters to them. Keep your opening sentence direct. Do not begin with pleasantries that the reader has to scroll past to find the actual point. State your purpose in the first two sentences. If you need the reader to take action make that action explicit. Be specific about what you are asking for and by when. Keep paragraphs short, ideally no more than three sentences each, so the email is easy to scan. Before sending, read it once from the recipient\'s perspective and ask whether someone unfamiliar with the context could understand it and act on it immediately. If the answer is no, revise until it is.' },
+      { id:'d6', title:'How to Build a Daily Routine', level:'hard',
+        text:'The architecture of a productive life is largely invisible to observers. What appears from the outside as exceptional talent or extraordinary willpower is, on closer inspection, usually the result of consistent daily habits executed so reliably that they require almost no conscious effort. Building a strong routine begins with designing your mornings. The first hour after waking has disproportionate influence on the quality of the rest of the day. Protecting it from the immediate pull of notifications, news, and reactive tasks allows you to approach the day from a position of intention rather than response. Identify two or three non-negotiable practices that you will complete each morning regardless of circumstance. Anchor your most cognitively demanding work to the time of day when your focus is naturally sharpest, and protect that window as you would a critical appointment. A routine well-designed does not constrain your freedom. It creates the conditions in which meaningful work and genuine rest both become possible.' }
+    ]
+  },
+  {
+    id:'ceremonial', name:'🏛 Ceremonial',
+    passages:[
+      { id:'ce1', title:'A Welcome Address', level:'easy',
+        text:'Good morning and welcome everyone. It is wonderful to see so many familiar faces gathered here today, and we are delighted to welcome those of you who are joining us for the first time. Today is a day we have all been looking forward to. It brings together people who share a common purpose and a genuine care for what we are trying to build together. Events like this one remind us of the importance of coming together, of pausing in the middle of our busy lives to connect with one another face to face. We are grateful to each of you for making the time to be here. Your presence today means a great deal. Over the course of this morning we will hear from several wonderful speakers and have plenty of time to talk with one another. We hope you will leave feeling inspired, energised, and glad that you came. Once again, welcome. We are so pleased you are here.' },
+      { id:'ce2', title:'A Toast at a Wedding', level:'medium',
+        text:'Ladies and gentlemen, please raise your glasses. I have known the groom since we were both eleven years old and considerably less sensible than we are today, which gives me perhaps too much material and just enough wisdom to know which parts of it to leave out. What I will say is this. I have watched my friend face challenges that would have stopped many people in their tracks, and every time without fail he has met them with patience, humour, and a stubbornness that I used to find frustrating and now recognise as one of his finest qualities. When he told me he had met someone who made him want to be a better person I knew this was serious. Having come to know his partner over these past few years I understand completely. You are quite simply the right people for each other at the right time in each other\'s lives. To a future filled with every happiness. Ladies and gentlemen, the bride and groom.' },
+      { id:'ce3', title:'An Acceptance Speech', level:'hard',
+        text:'I want to begin by saying what everyone in this room who has ever stood in this position knows to be true: no award of this kind is ever the achievement of a single person. It is the accumulated result of everyone who believed in the work before it was finished, everyone who offered their time, expertise, and encouragement when the work was difficult and the outcome uncertain, and everyone whose own contributions made the work possible in the first place. I am deeply grateful to this organization for its generosity and for the seriousness with which it takes the work we are all trying to do. I am grateful to my colleagues, whose judgment I trust more than my own. And I am grateful to the people whose stories and experiences are at the centre of everything I do. Their willingness to be known and to trust that something worthwhile might come from that trust is the foundation on which all the rest of it rests. This recognition belongs to all of them.' },
+      { id:'ce4', title:'Opening Remarks at a School Event', level:'easy',
+        text:'Good afternoon everyone and a very warm welcome to our school. We are so pleased to have parents, teachers, and students together in the same room today. Days like this are special. They give us a chance to step back from the routine of daily school life and celebrate what we have been building together over the past year. Our students have worked hard. Our teachers have given generously of their time and creativity. And our families have supported both in countless ways, many of which go unseen but none of which go unnoticed. Today is a chance to celebrate all of that together. We have a wonderful programme planned for the afternoon. There will be performances, presentations, and plenty of time to talk with one another afterwards. We hope you enjoy every moment of it. Thank you for being here. Your presence today tells our students that what they do matters. And it does. It truly does.' },
+      { id:'ce5', title:'Farewell to a Retiring Colleague', level:'medium',
+        text:'There are people in any workplace who are so consistently present, so reliably themselves, that you stop noticing them the way you stop noticing a wall until the day it is gone and the room feels strangely open and cold. Today we say goodbye to one of those people. Over more than two decades in this organization she has quietly shaped almost every team she has been part of. Not through grand gestures or formal authority, but through the patient daily work of being someone that others could count on. She remembered birthdays. She stayed late when deadlines pressed. She asked how you were and actually waited for the answer. These things sound small described one by one. Accumulated over twenty years they are anything but. We will miss her presence in ways that will surprise us long after today. We wish her every joy in the chapter ahead, and we thank her sincerely and inadequately for everything she gave to this place.' },
+      { id:'ce6', title:'A Commencement Address', level:'hard',
+        text:'I will not tell you that these are the best years of your lives, because I do not believe that is true, and I suspect you do not entirely believe it either. The best years of anyone\'s life are not a fixed destination that you have already passed or are rushing toward. They are built, incrementally and imperfectly, through the choices you make about how to spend your time, whom to love, what to pursue, and what to refuse. What I will tell you is this: you are leaving this institution better equipped than you know. You have practiced over these years the difficult art of sustained attention. You have learned that hard problems require patience, that good work demands revision, and that the most important things are rarely obvious at first glance. These are not academic skills. They are the skills of a life well-examined. The world you are entering is uncertain in ways that will sometimes frighten you. That is not a flaw in the design. Uncertainty is where all meaningful decisions live. Go toward it with the seriousness and curiosity you have cultivated here.' }
     ]
   },
   {
     id:'motivational', name:'🔥 Motivational',
     passages:[
-      {
-        id:'m1', title:'Every Step Forward', level:'easy',
-        text:'You do not have to be perfect to start. You just have to start. Every great journey begins with a single step forward. When things feel too hard, take a breath and try once more. Small progress is still progress. Each time you try you learn something new. Each time you fall you grow a little stronger. The most successful people in the world were not born knowing everything. They worked hard, made mistakes, and kept going. Believe in yourself even when things feel impossible. Your effort today is building the person you will become tomorrow. Keep going. You are closer than you think.'
-      },
-      {
-        id:'m2', title:'Rising After Failure', level:'medium',
-        text:'Failure is not the opposite of success. It is a part of success. Every inventor, artist, and leader has faced moments of defeat. Thomas Edison failed more than a thousand times before he produced a working lightbulb. He described each failure not as a setback but as one more thing he had learned. When you stumble and fall you discover things about yourself that comfort and ease can never teach you. The sting of failure sharpens your focus, clarifies your goals, and deepens your determination. Do not be afraid of falling short. Be afraid only of never trying at all. The courage to begin again after failure is one of the most powerful forces a person can possess.'
-      },
-      {
-        id:'m3', title:'The Language of Courage', level:'hard',
-        text:'Courage is not the absence of fear. It is the recognition that something matters more than the fear you feel in a given moment. Throughout history the most transformative acts of human bravery have been performed by ordinary men and women who were deeply afraid yet chose to act anyway. They spoke when silence would have been safer. They stood when sitting would have been easier. They built bridges across chasms that others believed uncrossable. This is the nature of true courage. It is quiet, deliberate, and profoundly human. The world does not need fearless people. It needs people who understand their fear, acknowledge it honestly, and choose to move forward in spite of it. That choice, made again and again, is how lives and histories are changed.'
-      }
-    ]
-  },
-  {
-    id:'communication', name:'💬 Communication',
-    passages:[
-      {
-        id:'c1', title:'Meeting Someone New', level:'easy',
-        text:'Hello, my name is Alex and I am very pleased to meet you. I work as a teacher at a local primary school. I have been teaching for about five years now and I love it. Working with children and helping them discover new things is the most rewarding part of my day. In my free time I enjoy reading, cooking, and going for long walks in the park. I moved to this city two years ago and I have been made to feel very welcome here. Everyone I have met has been so kind and friendly. I hope we have the chance to get to know each other better. Please feel free to ask me anything at all.'
-      },
-      {
-        id:'c2', title:'Giving a Presentation', level:'medium',
-        text:'Good morning everyone and thank you for taking the time to join us today. I would like to talk about something I believe is important for all of us. Over the next few minutes I will share key findings from our recent research and explain how they might shape the way we work going forward. I will begin with a brief overview of the background, then walk through the main results, and close with some thoughts on what we might do next. Please feel free to ask questions at any point during the talk. Your questions and perspectives are always valuable and I genuinely look forward to hearing them. So without further delay, let us get started.'
-      },
-      {
-        id:'c3', title:'Navigating Difficult Conversations', level:'hard',
-        text:'There are moments in professional and personal life when we must engage with perspectives that challenge our own deeply held beliefs. In these moments the quality of our listening matters far more than the persuasiveness of our speaking. Effective communication in difficult circumstances requires us to create space for the other person\'s experience without feeling immediately compelled to defend or justify our own position. It demands that we distinguish between the content of what is being said and the emotional intensity with which it is delivered. When we can hold that distinction steady, we open the possibility of genuine understanding. And genuine understanding, even when it does not lead to agreement, is always the foundation of a productive and respectful dialogue.'
-      }
-    ]
-  },
-  {
-    id:'general', name:'🌍 General',
-    passages:[
-      {
-        id:'g1', title:'Weather Around the World', level:'easy',
-        text:'The weather around the world can be very different depending on where you live. In some countries the sun shines nearly every day and temperatures stay warm all year round. In other places there are four distinct seasons. Spring brings flowers and mild breezes. Summer is hot and bright. Autumn turns the leaves red and gold. Winter brings cold winds and sometimes snow. Near the equator the climate is hot and wet, and thick rainforests grow because so much rain falls throughout the year. Near the poles it is always cold and covered in ice. People who live in these extreme places have found clever ways to keep warm and to build shelter against the harsh conditions.'
-      },
-      {
-        id:'g2', title:'How the Internet Works', level:'medium',
-        text:'When you send a message online or load a webpage, the information travels across a vast global network of cables, routers, and servers. Your device breaks the data into small packets, each labeled with a destination address. These packets may travel by entirely different routes, crossing fiber-optic cables laid under oceans or bouncing through wireless signals in the air. At every step, routers read each packet\'s address and direct it forward, much like a post office sorting millions of letters at once. When all the packets arrive your device reassembles them into the original message or page. This entire process typically takes less than one second, allowing billions of people around the world to communicate and share information almost instantly.'
-      },
-      {
-        id:'g3', title:'The Human Brain', level:'hard',
-        text:'The human brain is arguably the most complex structure in the known universe. Weighing approximately three pounds and consuming roughly twenty percent of the body\'s total energy despite comprising only two percent of its mass, the brain coordinates every conscious and unconscious process that sustains human life. It contains approximately eighty-six billion neurons, each capable of forming thousands of synaptic connections, creating a network of staggering computational power. The prefrontal cortex, located directly behind the forehead, governs executive functions such as planning, decision-making, and impulse control. The limbic system, nestled deeper within, regulates emotion and memory. Modern neuroscience continues to show that the brain remains remarkably adaptable throughout life, a property known as neuroplasticity, meaning that learning and experience can physically reshape its structure even in adulthood.'
-      }
+      { id:'mo1', title:'Keep Going', level:'easy',
+        text:'There will be days when everything feels too hard and you wonder why you are even trying. On those days remember this: progress is almost never visible while it is happening. The seed does not feel itself growing. The river does not notice how slowly it is wearing down the rock. But growth is happening and the rock is being worn away, whether you can see it or not. Every effort you make, even the ones that feel pointless, is adding to something. Every time you choose to try again after failing you are becoming someone slightly different from the person who first started. The distance between where you began and where you will end up is not crossed in a single leap. It is crossed one small step at a time, on ordinary days, when no one is watching and it would be easier to stop. Do not stop. Keep going.' },
+      { id:'mo2', title:'The Power of Persistence', level:'medium',
+        text:'If you study the lives of people who have achieved something genuinely difficult, a pattern emerges that is both encouraging and inconvenient. Almost without exception the path to their success was not straight, not fast, and not obvious to anyone watching from the outside. It was paved with rejection, misunderstanding, long periods of invisibility, and the slow unglamorous accumulation of skill. The novelist who wrote three unpublished books before the fourth became a classic. The scientist whose hypothesis was dismissed for fifteen years before the evidence finally aligned. The athlete who did not make the team the first three times she tried out. What distinguished these people was not extraordinary talent or fortunate circumstance. It was the decision made repeatedly in private to continue. Persistence is not a fixed personality trait. It is a practice. And like all practices it is strengthened by repetition and weakened by disuse. The most important time to persist is the moment it feels most pointless. That is usually the moment just before something changes.' },
+      { id:'mo3', title:'Ordinary People, Extraordinary Courage', level:'hard',
+        text:'We tend to think of courage as something that belongs to a particular kind of person, a category of human being defined by physical daring, natural confidence, or a constitution somehow immune to doubt and fear. History, examined honestly, tells a different story. The most consequential acts of courage in any era have been performed by people who were by every ordinary measure ordinary. They were afraid. They doubted themselves. They could clearly imagine the cost of what they were about to do and chose to do it anyway, not because they felt certain of success but because the alternative, staying silent, staying still, staying safe, was something they found they could not live with. Courage is not the property of exceptional people. It is the response of ordinary people to extraordinary circumstances, and it is available to all of us. The question each of us must answer for ourselves is what we are willing to stand for when standing for it is genuinely difficult. That question has no comfortable answer, only the one that you can look back on without shame.' },
+      { id:'mo4', title:'You Are Enough', level:'easy',
+        text:'Sometimes the loudest voice telling you that you are not ready, not good enough, or not worthy of what you want is the one inside your own head. That voice is very persuasive and it is also very often wrong. You do not need to be perfect before you begin. You do not need to have everything figured out before you take the first step. You are allowed to start where you are, with what you have, right now. The people you admire most were once exactly where you are. They were uncertain. They made mistakes. They wondered whether they were good enough. The only difference between them and someone who never tries is that they chose to move forward anyway. You are more capable than you give yourself credit for. Your past does not determine your future. Today is a new chance to try, to learn, and to grow. You are enough, right now, to begin.' },
+      { id:'mo5', title:'Turning Obstacles into Opportunities', level:'medium',
+        text:'The ancient Stoics had a saying that has lost none of its relevance across two thousand years: the obstacle is the way. By this they meant that the thing standing between you and what you want is not an interruption of your path but the path itself. Resistance, difficulty, and failure are not signs that you are doing something wrong. They are signs that you are doing something real. Easy things require nothing of you and give back very little. It is the difficult things, the ones that push back and refuse to yield without effort, that build the qualities on which everything else depends. This reframing is not merely a motivational trick. It is a fundamental shift in how you relate to adversity. When you stop experiencing obstacles as evidence of your limitations and start experiencing them as raw material for growth something changes in how you engage with your own life. You become more curious, more resilient, and ultimately more effective. Every difficult thing you face is offering you something. The question is whether you are willing to receive it.' },
+      { id:'mo6', title:'The Discipline of Daily Growth', level:'hard',
+        text:'There is a seductive myth that transformation happens in moments of sudden insight or dramatic decision, that people change through the kind of pivotal event that can be narrated cleanly with a before and an after. This myth is appealing precisely because it is so much easier to imagine than the truth, which is that lasting change is almost always the product of small actions taken repeatedly, often tediously, over a long period of time without visible reward. The compound effect of daily discipline is genuinely extraordinary, but it is invisible in the short term, which is exactly when most people give up. One percent better each day produces results that are counterintuitive in their magnitude. The person who reads for thirty minutes each morning for ten years does not merely know more than the person who did not. They think differently, connect ideas differently, and bring a depth of reference to every conversation and decision that cannot be acquired any other way. Commit to daily growth not because of what you will achieve in a week or a month, but because of who you will have become in a decade.' }
     ]
   },
   {
     id:'sympathetic', name:'💜 Sympathetic',
     passages:[
-      {
-        id:'sy1', title:'A Note to a Friend', level:'easy',
-        text:'I know that right now things feel really difficult for you. I want you to know that I am here. You do not have to face any of this alone. When you feel sad or lost or overwhelmed, please reach out. I will always listen without judgment and without trying to rush you through what you are feeling. Some days are heavy and that is completely okay. It is okay to cry. It is okay to say that you are struggling. Asking for support is one of the bravest things a person can do. You have been there for so many people. Please let us be here for you now. Whatever you need, I am not going anywhere. You matter more than you know.'
-      },
-      {
-        id:'sy2', title:'Words for a Difficult Time', level:'medium',
-        text:'Grief does not follow a schedule or a neat and tidy path. It arrives without warning, sometimes long after you believed it had passed. There is no right or wrong way to move through loss. Some days you may feel surprisingly strong and clear-headed. Other days the weight of what you carry may feel completely unbearable. Both of those experiences are entirely valid and both deserve to be honoured. What matters most is that you allow yourself to feel what you feel without rushing toward some imagined finish line. Time does not always heal everything, but it does slowly change the shape of things. Gradually the pain that once felt sharp and constant may become something softer, something that you can carry with more ease.'
-      },
-      {
-        id:'sy3', title:'On Empathy and Human Connection', level:'hard',
-        text:'To truly empathise with another person is one of the most demanding and most beautiful things we can do as human beings. It requires us to set aside the natural impulse to offer quick solutions, to compare experiences, or to minimise what the other person is feeling. It asks us instead to enter as fully as we are able into the emotional reality of someone else\'s life. This is not a passive act. It demands concentration, humility, and a willingness to sit with discomfort alongside the person who is suffering. When we offer genuine empathy we do not promise that things will improve or that the pain will end. We say simply, with our presence and attention, that this person\'s experience matters and that they are not invisible. In a world that often moves too fast to notice one another\'s pain, that quiet act of faithful attention is among the most profound gifts we can give.'
-      }
+      { id:'sy1', title:'A Message of Comfort', level:'easy',
+        text:'I know that right now words feel like very small things in the face of what you are carrying. I am not going to pretend that anything I say can make this easier. What I want you to know is simply this: you do not have to go through it alone. Grief and pain can make us feel invisible, as though no one around us could possibly understand what is happening inside us. But you are not invisible to me. I see you. I see how hard you are trying. I see the weight you are carrying and the grace with which you are carrying it, even on the days when it does not feel like grace at all. There is no right way to feel right now. Whatever you are feeling is allowed. Take as much time as you need. Reach out when you are ready and rest when you are not. I am here, I am not going anywhere, and you matter more than you know.' },
+      { id:'sy2', title:'Walking Through Grief', level:'medium',
+        text:'Grief does not move in a straight line and it does not keep to any schedule. It circles back. It ambushes you in ordinary moments, in the middle of a supermarket aisle or at the beginning of a song. It asks nothing of you except that you keep living, which on certain days is the hardest thing in the world. There is an enormous amount of unhelpful advice given to people who are grieving, most of it well-intentioned and almost all of it focused on the destination rather than the journey. The truth is that grief is not a problem to be solved or a wound to be healed as quickly as possible. It is the natural consequence of love, and it deserves to be moved through with patience and without judgment. The measure of grief is not weakness. It is the measure of what was lost and what was loved. You are not broken. You are bereaved. Those are not the same thing, and the difference matters more than most people are ever told.' },
+      { id:'sy3', title:'The Gift of Presence', level:'hard',
+        text:'When someone we care about is suffering, our first instinct is almost always to do something, to fix, to advise, to reassure, to find the right words that will, if not resolve the pain, at least demonstrate that we have taken it seriously. This instinct comes from a good place and it is also, in the deepest sense, beside the point. What suffering people most frequently say they needed and rarely received was not a solution but a witness. Someone who could sit with them in their difficulty without trying to redirect it, resolve it, or frame it more optimistically. This kind of presence is far more demanding than it sounds. It requires us to resist our own discomfort with pain, our own need to feel useful, and our own urge to restore equilibrium to a situation that is not yet ready to be restored. To be genuinely present with someone who is suffering is to accept their experience on its own terms, without rushing toward the silver lining. It is among the most difficult things one human being can offer another, and it is among the most healing.' },
+      { id:'sy4', title:'You Are Not Alone', level:'easy',
+        text:'Sometimes the hardest part of a difficult time is the feeling that no one else could possibly understand what you are going through. Pain can be very isolating. It can make the world feel very far away and make the people in it seem very small or very distant. I want you to know that however alone you feel right now you are not. There are people in your life who care about you deeply, even when life gets in the way of showing it as often as they should. And there are people all around the world who have felt exactly what you are feeling and who have found eventually a way through. You will too. You do not have to have everything sorted out. You do not have to be strong all the time. It is okay to accept help. It is okay to say you are struggling. It is okay to not be okay for a while. None of that means you are weak. It means you are human.' },
+      { id:'sy5', title:'On Healing and Time', level:'medium',
+        text:'People often say that time heals everything, and while I understand why that phrase has endured I am not sure it tells the whole truth. Time alone does not heal very much. What time offers is distance, and what we do with that distance matters enormously. Healing requires more than the passive passage of days. It asks us to make space for what we are feeling, to resist the temptation to bury it under busyness or optimism, and to allow ourselves to move through the full range of what we experience rather than choosing only the parts that are easiest to show. Healing also asks us to accept help when it is offered and to reach for connection when we feel the pull of isolation. These are not signs of weakness. They are the practical tools of recovery. Grief and loss do not follow a timetable and they do not respond to willpower. They ask for gentleness, patience, and the willingness to be honest with yourself about where you are, even when where you are is very far from where you want to be.' },
+      { id:'sy6', title:'The Courage to Ask for Help', level:'hard',
+        text:'We live in a culture that celebrates self-sufficiency and is uneasy with dependence. From an early age most of us absorb the message that asking for help is a last resort, a reluctant admission that our own resources have been exhausted. This message is not only unkind but demonstrably false. The most resilient people, in research and in life, are not those who need the least from others. They are those who have built the deepest and most reciprocal networks of support, who are comfortable giving help and equally comfortable receiving it. Asking for help when you are struggling is not a failure of character. It is an act of self-knowledge and courage. It requires you to acknowledge vulnerability in a world that often punishes vulnerability, to trust another person with something true about your inner life, and to accept that you are not required to manage everything alone. The people who love you do not want to be protected from your difficulties. They want the chance to be present in them with you. Letting them in is not a burden to them. It is, very often, a gift.' }
     ]
   }
 ];
@@ -462,6 +501,7 @@ const THEMES = [
 // ═══════════════════════════════════════════════════════════
 let currentThemeId  = THEMES[0].id;
 let currentPassage  = THEMES[0].passages[0];
+let themePages      = {};   // { themeId: pageIndex } — which set of 3 passages is shown
 let recognition     = null;
 let isRecording     = false;
 let finalText       = '';
@@ -565,7 +605,8 @@ function switchTheme(id) {
   if (isRecording) stopRecording();
   currentThemeId = id;
   const theme = THEMES.find(t => t.id === id);
-  currentPassage = theme.passages[0];
+  const page  = themePages[id] || 0;
+  currentPassage = theme.passages[page * 3] || theme.passages[0];
   renderThemeTabs();
   renderPassageGrid();
   renderPassage();
@@ -573,13 +614,41 @@ function switchTheme(id) {
 }
 
 function renderPassageGrid() {
-  const theme = THEMES.find(t => t.id === currentThemeId);
-  passageGrid.innerHTML = theme.passages.map(p => `
+  const theme      = THEMES.find(t => t.id === currentThemeId);
+  const page       = themePages[currentThemeId] || 0;
+  const perPage    = 3;
+  const totalPages = Math.ceil(theme.passages.length / perPage);
+  const pagePsg    = theme.passages.slice(page * perPage, (page + 1) * perPage);
+
+  passageGrid.innerHTML = pagePsg.map(p => `
     <div class="pcard ${p.id === currentPassage.id ? 'active' : ''}" onclick="selectPassage('${p.id}')">
       <div class="pcard-title">${p.title}</div>
       <span class="badge ${p.level}">${p.level}</span>
     </div>
   `).join('');
+
+  const btnEl = document.getElementById('updatePassagesBtn');
+  if (totalPages > 1) {
+    btnEl.innerHTML = `<button class="ghost-btn" onclick="updatePassages('${currentThemeId}')">↻ New Passages &nbsp;<span style="font-size:.75rem;opacity:.7">Set ${page + 1} / ${totalPages}</span></button>`;
+  } else {
+    btnEl.innerHTML = '';
+  }
+}
+
+function updatePassages(themeId) {
+  if (isRecording) stopRecording();
+  const theme      = THEMES.find(t => t.id === themeId);
+  const page       = themePages[themeId] || 0;
+  const perPage    = 3;
+  const totalPages = Math.ceil(theme.passages.length / perPage);
+  const nextPage   = (page + 1) % totalPages;
+  themePages[themeId] = nextPage;
+  currentPassage = theme.passages[nextPage * perPage];
+  renderPassageGrid();
+  renderPassage();
+  resetResults();
+  finalText = '';
+  transcriptEl.innerHTML = '<span class="placeholder">Your spoken words will appear here in real time…</span>';
 }
 
 function selectPassage(id) {
@@ -1154,85 +1223,108 @@ function ttsSpeak(word, rate) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  PRACTICE MODAL
+//  PRACTICE MODAL  (speech-recognition word check)
 // ═══════════════════════════════════════════════════════════
+let wordCheckRec = null;
+
 function openModal(word) {
   practiceWordStr = word;
   practiceWordDisplay.textContent = word;
-  // Reset player
-  practicePlayer.style.display = 'none';
-  practicePlayer.src = '';
-  if (practiceBlobUrl) { URL.revokeObjectURL(practiceBlobUrl); practiceBlobUrl = null; }
-  practiceRecBtn.innerHTML = '🎤 Record';
-  practiceRecInd.classList.remove('show');
-  practiceTimerTxt.textContent = '';
+  practiceRecBtn.innerHTML = '🎤 Say it';
+  practiceRecBtn.disabled = false;
+  document.getElementById('practiceListening').classList.remove('show');
+  const res = document.getElementById('wordResult');
+  res.className = 'word-result';
+  res.textContent = '';
   practiceIsRecording = false;
+  if (wordCheckRec) { try { wordCheckRec.stop(); } catch(_){} wordCheckRec = null; }
   practiceModal.classList.add('open');
-  // Auto-play TTS so user hears the target immediately
   setTimeout(() => ttsSpeak(word, 1), 300);
 }
 
 function closeModal() {
-  if (practiceIsRecording) stopPracticeRec();
+  if (wordCheckRec) { try { wordCheckRec.stop(); } catch(_){} wordCheckRec = null; }
+  practiceIsRecording = false;
   practiceModal.classList.remove('open');
   window.speechSynthesis.cancel();
 }
 
-// Click outside modal card to close
 practiceModal.addEventListener('click', e => { if (e.target === practiceModal) closeModal(); });
 
 function speakPracticeWord(rate) { ttsSpeak(practiceWordStr, rate); }
 
-async function togglePracticeRec() {
-  if (practiceIsRecording) { stopPracticeRec(); return; }
+function startWordCheck() {
+  if (!SpeechRecognitionAPI) { alert('Speech recognition not supported in this browser.'); return; }
+  if (practiceIsRecording) return;
+  practiceIsRecording = true;
 
-  if (!hasMediaRecorder) {
-    alert('Audio recording is not supported in this browser.');
-    return;
+  const listeningEl = document.getElementById('practiceListening');
+  const resultEl    = document.getElementById('wordResult');
+  resultEl.className = 'word-result';
+  resultEl.textContent = '';
+  listeningEl.classList.add('show');
+  practiceRecBtn.disabled = true;
+
+  wordCheckRec = new SpeechRecognitionAPI();
+  wordCheckRec.continuous      = false;
+  wordCheckRec.interimResults  = false;
+  wordCheckRec.lang            = 'en-US';
+  wordCheckRec.maxAlternatives = 3; // check top 3 alternatives
+
+  wordCheckRec.onresult = (e) => {
+    const target = normalizeWord(practiceWordStr);
+    // Check all returned alternatives for a match
+    let heard = '';
+    let matched = false;
+    for (let a = 0; a < e.results[0].length; a++) {
+      const alt = normalizeWord(e.results[0][a].transcript.trim().split(/\s+/).pop()); // last word
+      if (!heard) heard = normalizeWord(e.results[0][a].transcript.trim());
+      if (alt === target) { matched = true; break; }
+    }
+    listeningEl.classList.remove('show');
+    if (matched) {
+      resultEl.className = 'word-result correct';
+      resultEl.textContent = '✓ Correct! Great pronunciation.';
+    } else {
+      resultEl.className = 'word-result wrong';
+      resultEl.textContent = `✗ Heard: "${heard}" — try again`;
+    }
+    practiceRecBtn.disabled = false;
+    practiceRecBtn.innerHTML = '🎤 Try again';
+    practiceIsRecording = false;
+    wordCheckRec = null;
+  };
+
+  wordCheckRec.onerror = (e) => {
+    listeningEl.classList.remove('show');
+    if (e.error !== 'no-speech') {
+      resultEl.className = 'word-result wrong';
+      resultEl.textContent = `Mic error: ${e.error}`;
+    }
+    practiceRecBtn.disabled = false;
+    practiceRecBtn.innerHTML = '🎤 Try again';
+    practiceIsRecording = false;
+    wordCheckRec = null;
+  };
+
+  wordCheckRec.onend = () => {
+    listeningEl.classList.remove('show');
+    practiceRecBtn.disabled = false;
+    if (practiceIsRecording) {
+      // no-speech: nothing was said
+      resultEl.className = 'word-result wrong';
+      resultEl.textContent = 'Nothing heard — please speak clearly and try again.';
+      practiceRecBtn.innerHTML = '🎤 Try again';
+      practiceIsRecording = false;
+    }
+    wordCheckRec = null;
+  };
+
+  try { wordCheckRec.start(); } catch(err) {
+    listeningEl.classList.remove('show');
+    practiceRecBtn.disabled = false;
+    practiceIsRecording = false;
   }
-
-  try {
-    practiceStream   = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const mime       = getMimeType();
-    practiceRecorder = mime ? new MediaRecorder(practiceStream, { mimeType: mime })
-                            : new MediaRecorder(practiceStream);
-    const chunks     = [];
-    practiceRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-    practiceRecorder.onstop = () => {
-      const blob = new Blob(chunks, { type: practiceRecorder.mimeType || 'audio/webm' });
-      if (practiceBlobUrl) URL.revokeObjectURL(practiceBlobUrl);
-      practiceBlobUrl = URL.createObjectURL(blob);
-      practicePlayer.src     = practiceBlobUrl;
-      practicePlayer.style.display = 'block';
-      if (practiceStream) { practiceStream.getTracks().forEach(t => t.stop()); practiceStream = null; }
-    };
-    practiceRecorder.start(100);
-    practiceIsRecording = true;
-    practiceRecBtn.innerHTML = '⏹ Stop';
-    practiceRecInd.classList.add('show');
-
-    // countdown timer
-    practiceSecsLeft = 5;
-    practiceTimerTxt.textContent = `${practiceSecsLeft}s`;
-    practiceTimerInt = setInterval(() => {
-      practiceSecsLeft--;
-      practiceTimerTxt.textContent = practiceSecsLeft > 0 ? `${practiceSecsLeft}s` : '';
-      if (practiceSecsLeft <= 0) stopPracticeRec();
-    }, 1000);
-
-  } catch(err) {
-    console.error('Practice record error:', err);
-    alert('Could not access microphone: ' + err.message);
-  }
-}
-
-function stopPracticeRec() {
-  if (practiceTimerInt) { clearInterval(practiceTimerInt); practiceTimerInt = null; }
-  if (practiceRecorder && practiceRecorder.state !== 'inactive') practiceRecorder.stop();
-  practiceIsRecording = false;
-  practiceRecBtn.innerHTML = '🎤 Record again';
-  practiceRecInd.classList.remove('show');
-  practiceTimerTxt.textContent = '';
 }
 
 // ═══════════════════════════════════════════════════════════
