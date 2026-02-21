@@ -528,7 +528,7 @@ if (location.protocol === 'file:' && isMobile) {
 } else if (isMobile) {
   browserNotice.style.display = 'block';
   browserNotice.innerHTML = isIOS
-    ? '📱 iPhone/iPad (Safari only): Tap <strong>Allow</strong> when asked. The mic briefly pauses every ~50 seconds — when you see the ↺ button, pause reading for 1 second then continue.'
+    ? '📱 iPhone/iPad (Safari only): Tap <strong>Allow</strong> when asked. If you see the ↺ button, pause for 1 second then keep reading.'
     : '📱 Android: When asked, tap <strong>Allow</strong> for microphone access. Chrome works best.';
 }
 
@@ -616,7 +616,7 @@ function buildRecognition() {
         if (isRecording && recognition) {
           recognition.stop(); // triggers onend → clean restart
         }
-      }, 50000);
+      }, 300000);
     }
   };
 
