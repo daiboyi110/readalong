@@ -96,6 +96,12 @@
       box-shadow:0 6px 24px rgba(220,38,38,.4);
       animation:ripple 1.5s infinite;
     }
+    #recordBtn.pausing {
+      background:linear-gradient(135deg,#9ca3af,#6b7280);
+      box-shadow:0 4px 14px rgba(0,0,0,.2);
+      animation:spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
     @keyframes ripple {
       0%   { box-shadow:0 0 0 0   rgba(220,38,38,.45); }
       70%  { box-shadow:0 0 0 18px rgba(220,38,38,0);  }
@@ -457,6 +463,9 @@ let audioChunks     = [];
 let recordingBlob   = null;
 let replayBlobUrl   = null;
 
+// iOS proactive restart (avoid forced ~60s timeout)
+let proactiveRestartTimer = null;
+
 // Practice modal
 let practiceWordStr    = '';
 let practiceStream     = null;
@@ -519,7 +528,7 @@ if (location.protocol === 'file:' && isMobile) {
 } else if (isMobile) {
   browserNotice.style.display = 'block';
   browserNotice.innerHTML = isIOS
-    ? '📱 iPhone/iPad (Safari only): Tap <strong>Allow</strong> when asked for mic access. The orange dot at the top means the mic is on — that\'s normal.'
+    ? '📱 iPhone/iPad (Safari only): Tap <strong>Allow</strong> when asked. The mic briefly pauses every ~50 seconds — when you see the ↺ button, pause reading for 1 second then continue.'
     : '📱 Android: When asked, tap <strong>Allow</strong> for microphone access. Chrome works best.';
 }
 
@@ -592,11 +601,23 @@ function buildRecognition() {
 
   r.onstart = () => {
     didStart = true;
+    recordBtn.classList.remove('pausing');
     recordBtn.classList.add('recording');
     recordBtn.innerHTML = '⏹';
     statusText.classList.add('live');
     statusText.textContent = '🔴 Recording — read the passage aloud';
     startRecordTimer();
+
+    // iOS: proactively restart at 50s so WE control the timing,
+    // preventing the forced browser timeout at ~60s.
+    if (isIOS) {
+      clearTimeout(proactiveRestartTimer);
+      proactiveRestartTimer = setTimeout(() => {
+        if (isRecording && recognition) {
+          recognition.stop(); // triggers onend → clean restart
+        }
+      }, 50000);
+    }
   };
 
   r.onresult = (e) => {
@@ -630,10 +651,10 @@ function buildRecognition() {
     }
   };
 
-  // On iOS each start() re-acquires the mic. Use a longer delay so the
-  // system banner can slide away, and create a FRESH instance each time
-  // (iOS doesn't reliably allow restarting the same recognition object).
+  // On iOS each start() re-acquires the mic. Use a delay so the system banner
+  // slides away, and create a FRESH instance every time (iOS rejects reuse).
   r.onend = () => {
+    clearTimeout(proactiveRestartTimer);
     if (!isRecording) return;
 
     // Silent failure: onend fired but onstart NEVER fired → mic was blocked
@@ -642,13 +663,20 @@ function buildRecognition() {
       resetRecordBtn();
       stopRecordTimer();
       statusText.textContent = isIOS
-        ? '🚫 Microphone blocked. On your iPhone: Settings → Safari → Microphone → set this site to Allow. Then reload the page and try again.'
-        : '🚫 Microphone access was blocked. Click the 🔒 lock icon in your address bar, set Microphone to Allow, then try again.';
+        ? '🚫 Microphone blocked. On your iPhone: Settings → Safari → Microphone → set this site to Allow. Then reload and try again.'
+        : '🚫 Microphone access was blocked. Click the 🔒 icon in your address bar, set Microphone to Allow, then try again.';
       return;
     }
 
-    const delay = isIOS ? 1000 : 250;
-    if (isIOS) statusText.textContent = '↺ Resuming… keep reading';
+    // Show "pausing" spinner on button so user knows to briefly pause reading
+    if (isIOS) {
+      recordBtn.classList.remove('recording');
+      recordBtn.classList.add('pausing');
+      recordBtn.innerHTML = '↺';
+      statusText.textContent = '↺ Mic refreshing — pause 1 second then keep reading…';
+    }
+
+    const delay = isIOS ? 600 : 250;
     setTimeout(() => {
       if (!isRecording) return;
       recognition = buildRecognition(); // fresh instance required on iOS
@@ -736,6 +764,7 @@ async function startRecording() {
 
 function stopRecording() {
   isRecording = false;
+  clearTimeout(proactiveRestartTimer);
   stopRecordTimer();
 
   if (recognition) { recognition.stop(); recognition = null; }
@@ -771,6 +800,7 @@ resetBtn.addEventListener('click',  () => { if (isRecording) stopRecording(); re
 
 function resetAll() {
   isRecording = false;
+  clearTimeout(proactiveRestartTimer);
   finalText   = '';
   startTime   = null;
   recordingBlob = null;
