@@ -504,10 +504,10 @@ const hasTTS               = !!window.speechSynthesis;
 const isIOS                = /iPad|iPhone|iPod/.test(navigator.userAgent);
 const isMobile             = isIOS || /Android/i.test(navigator.userAgent);
 
-// File:// protocol blocks speech recognition entirely — must be served over HTTPS
-if (location.protocol === 'file:') {
+// On mobile, file:// blocks speech recognition — must use HTTPS. Desktop Chrome/Edge is fine.
+if (location.protocol === 'file:' && isMobile) {
   browserNotice.style.display = 'block';
-  browserNotice.innerHTML = '⚠️ This app must be opened from a web address, not a local file. '
+  browserNotice.innerHTML = '⚠️ On mobile, this app must be opened from a web address. '
     + 'Open it at <a href="https://daiboyi110.github.io/readalong/" style="color:#92400e;font-weight:700;">https://daiboyi110.github.io/readalong/</a>';
   recordBtn.disabled = true;
 } else if (!SpeechRecognitionAPI) {
