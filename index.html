@@ -616,7 +616,8 @@ function buildRecognition() {
   r.lang            = 'en-US';
   r.maxAlternatives = 1;
 
-  let didStart = false; // tracks whether onstart ever fired for this instance
+  let didStart     = false; // tracks whether onstart ever fired for this instance
+  let interimBuffer = '';   // latest interim text — rescued into finalText on session end
 
   r.onstart = () => {
     didStart = true;
@@ -624,18 +625,15 @@ function buildRecognition() {
     recordBtn.classList.add('recording');
     recordBtn.innerHTML = '⏹';
     statusText.classList.add('live');
-    statusText.textContent = '🔴 Recording — read the passage aloud';
     startRecordTimer();
 
-    // iOS: proactively restart at 50s so WE control the timing,
-    // preventing the forced browser timeout at ~60s.
+    // iOS: proactively restart at 45s — safely before iOS's hard ~60s session limit.
+    // This way WE control the restart timing and avoid losing the last chunk of speech.
     if (isIOS) {
       clearTimeout(proactiveRestartTimer);
       proactiveRestartTimer = setTimeout(() => {
-        if (isRecording && recognition) {
-          recognition.stop(); // triggers onend → clean restart
-        }
-      }, 300000);
+        if (isRecording && recognition) recognition.stop();
+      }, 45000);
     }
   };
 
@@ -643,9 +641,10 @@ function buildRecognition() {
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const t = e.results[i][0].transcript;
-      if (e.results[i].isFinal) finalText += t + ' ';
+      if (e.results[i].isFinal) { finalText += t + ' '; interimBuffer = ''; }
       else interim = t;
     }
+    interimBuffer = interim; // keep latest interim so onend can rescue it
     transcriptEl.innerHTML =
       (finalText  ? `<span>${finalText}</span>` : '') +
       (interim    ? `<span class="interim">${interim}</span>` : '');
@@ -670,8 +669,6 @@ function buildRecognition() {
     }
   };
 
-  // On iOS each start() re-acquires the mic. Use a delay so the system banner
-  // slides away, and create a FRESH instance every time (iOS rejects reuse).
   r.onend = () => {
     clearTimeout(proactiveRestartTimer);
     if (!isRecording) return;
@@ -687,12 +684,18 @@ function buildRecognition() {
       return;
     }
 
-    // Show "pausing" spinner on button so user knows to briefly pause reading
+    // Rescue any interim text that iOS cut off before it could be finalized
+    if (interimBuffer.trim()) {
+      finalText    += interimBuffer.trim() + ' ';
+      interimBuffer = '';
+    }
+
+    // Show "pausing" spinner so user knows to briefly pause (~0.5s) while mic resets
     if (isIOS) {
       recordBtn.classList.remove('recording');
       recordBtn.classList.add('pausing');
       recordBtn.innerHTML = '↺';
-      statusText.textContent = '↺ Mic refreshing — pause 1 second then keep reading…';
+      statusText.textContent = '↺ Mic refreshing — keep reading in a moment…';
     }
 
     const delay = isIOS ? 600 : 250;
@@ -885,30 +888,18 @@ async function startRecording() {
   finalText     = '';
   recordingBlob = null;
   transcriptEl.innerHTML = '<span class="placeholder">Starting…</span>';
+  statusText.textContent  = isIOS ? 'Tap Allow when your browser asks for mic access…'
+                                  : 'Requesting microphone access…';
   resetResults();
-  startTime = Date.now();
-  isRecording = true;
 
-  // ── Mobile: sentence-by-sentence mode avoids iOS session timeout ──
-  if (isMobile) {
-    statusText.textContent = isIOS
-      ? 'Tap Allow when asked, then read each sentence aloud…'
-      : 'Starting — read each sentence aloud when highlighted…';
-    enterSentenceMode();
-    return;
-  }
-
-  // ── Desktop: single continuous session ──
-  statusText.textContent = 'Requesting microphone access…';
-
-  if (hasMediaRecorder) {
+  // Skip getUserMedia on iOS — prevents double permission dialog on every restart
+  if (hasMediaRecorder && !isIOS) {
     try {
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
     } catch(err) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         statusText.textContent = '🚫 Microphone access denied. Click the 🔒 icon in your address bar to allow it.';
         transcriptEl.innerHTML = '<span class="placeholder">…</span>';
-        isRecording = false;
         return;
       }
       micStream = null;
@@ -935,10 +926,12 @@ async function startRecording() {
   recognition = buildRecognition();
   try {
     recognition.start();
+    isRecording = true;
+    startTime   = Date.now();
     transcriptEl.innerHTML = '<span class="placeholder">Listening… read aloud now</span>';
+    if (isIOS) statusText.textContent = '📱 Allow mic access if asked, then start reading…';
   } catch(err) {
     statusText.textContent = `Could not start: ${err.message}`;
-    isRecording = false;
     if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
     if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
   }
