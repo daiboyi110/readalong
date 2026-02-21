@@ -6,295 +6,222 @@
   <title>ReadAlong — Reading Accuracy Trainer</title>
   <style>
     :root {
-      --primary:        #5b21b6;
-      --primary-light:  #7c3aed;
-      --primary-pale:   #ede9fe;
-      --success:        #059669;
-      --success-bg:     #d1fae5;
-      --danger:         #dc2626;
-      --danger-bg:      #fee2e2;
-      --bg:             #f5f3ff;
-      --card:           #ffffff;
-      --text:           #1e1b4b;
-      --muted:          #6b7280;
-      --border:         #ddd6fe;
+      --primary:       #5b21b6;
+      --primary-lt:    #7c3aed;
+      --primary-pale:  #ede9fe;
+      --success:       #059669;
+      --success-bg:    #d1fae5;
+      --danger:        #dc2626;
+      --danger-bg:     #fee2e2;
+      --bg:            #f5f3ff;
+      --card:          #ffffff;
+      --text:          #1e1b4b;
+      --muted:         #6b7280;
+      --border:        #ddd6fe;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *          { margin:0; padding:0; box-sizing:border-box; }
+    body       { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
-
-    /* ── Header ── */
+    /* ── Header ────────────────────────────────── */
     header {
-      background: linear-gradient(135deg, var(--primary) 0%, #3730a3 100%);
-      color: #fff;
-      padding: 18px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 4px 20px rgba(91,33,182,.35);
+      background: linear-gradient(135deg,#4c1d95,#3730a3);
+      color:#fff;
+      padding:0 24px;
+      position:sticky; top:0; z-index:50;
+      box-shadow:0 4px 20px rgba(76,29,149,.4);
     }
-    .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -.5px; }
-    .logo em { color: #c4b5fd; font-style: normal; }
-    .tagline { font-size: .82rem; opacity: .8; }
+    .header-top {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 0 10px;
+    }
+    .logo       { font-size:1.45rem; font-weight:800; letter-spacing:-.5px; }
+    .logo em    { color:#c4b5fd; font-style:normal; }
+    .tagline    { font-size:.8rem; opacity:.75; }
+    .theme-tabs { display:flex; gap:2px; overflow-x:auto; padding-bottom:0; }
+    .theme-tab  {
+      padding:10px 15px; border:none; background:transparent;
+      color:rgba(255,255,255,.6); cursor:pointer; font-size:.88rem; font-weight:500;
+      border-bottom:3px solid transparent; white-space:nowrap; transition:all .2s;
+    }
+    .theme-tab:hover  { color:#fff; }
+    .theme-tab.active { color:#fff; border-bottom-color:#c4b5fd; }
 
-    /* ── Browser notice ── */
+    /* ── Browser notice ─────────────────────────── */
     #browserNotice {
-      display: none;
-      background: #fef9c3;
-      border-bottom: 2px solid #facc15;
-      color: #713f12;
-      padding: 10px 24px;
-      font-size: .85rem;
-      text-align: center;
+      display:none; background:#fef9c3; border-bottom:2px solid #facc15;
+      color:#713f12; padding:10px 24px; font-size:.85rem; text-align:center;
     }
 
-    /* ── Layout ── */
-    .container {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 28px 16px 48px;
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
-    }
+    /* ── Layout ─────────────────────────────────── */
+    .container { max-width:880px; margin:0 auto; padding:24px 16px 52px; display:flex; flex-direction:column; gap:20px; }
 
-    /* ── Card shell ── */
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 26px 28px;
-      box-shadow: 0 2px 14px rgba(91,33,182,.07);
-    }
-    .card-label {
-      font-size: .72rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 14px;
-    }
+    /* ── Card ───────────────────────────────────── */
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px 26px; box-shadow:0 2px 14px rgba(91,33,182,.07); }
+    .card-label { font-size:.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:14px; }
 
-    /* ── Passage selector ── */
-    .passage-selector {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+    /* ── Passage grid ───────────────────────────── */
+    .passage-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:11px; }
+    .pcard {
+      border:2px solid var(--border); border-radius:12px; padding:14px 16px;
+      cursor:pointer; transition:all .2s; background:#fafafa;
     }
-    .psel-btn {
-      padding: 7px 18px;
-      border-radius: 50px;
-      border: 2px solid var(--border);
-      background: var(--card);
-      cursor: pointer;
-      font-size: .88rem;
-      font-weight: 500;
-      color: var(--muted);
-      transition: all .2s;
-    }
-    .psel-btn:hover { border-color: var(--primary-light); color: var(--primary); }
-    .psel-btn.active {
-      background: var(--primary-light);
-      border-color: var(--primary-light);
-      color: #fff;
-    }
-    .badge {
-      display: inline-block;
-      padding: 1px 7px;
-      border-radius: 20px;
-      font-size: .68rem;
-      font-weight: 700;
-      margin-left: 5px;
-      vertical-align: middle;
-    }
-    .easy   { background: #d1fae5; color: #065f46; }
-    .medium { background: #fef3c7; color: #78350f; }
-    .hard   { background: #fee2e2; color: #7f1d1d; }
+    .pcard:hover        { border-color:var(--primary-lt); background:var(--primary-pale); }
+    .pcard.active       { border-color:var(--primary-lt); background:var(--primary-pale); box-shadow:0 0 0 3px rgba(124,58,237,.14); }
+    .pcard-title        { font-weight:600; font-size:.9rem; margin-bottom:6px; }
+    .badge              { display:inline-block; padding:1px 8px; border-radius:20px; font-size:.67rem; font-weight:700; }
+    .easy               { background:#d1fae5; color:#065f46; }
+    .medium             { background:#fef3c7; color:#78350f; }
+    .hard               { background:#fee2e2; color:#7f1d1d; }
 
-    /* ── Reading passage ── */
-    .passage-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 14px;
-    }
-    #passageText {
-      font-family: Georgia, 'Times New Roman', serif;
-      font-size: 1.25rem;
-      line-height: 2.1;
-    }
-    .w { display: inline; padding: 1px 2px; border-radius: 3px; transition: background .25s, color .25s; }
-    .w.correct   { background: var(--success-bg); color: #065f46; }
-    .w.incorrect { background: var(--danger-bg);  color: #7f1d1d; text-decoration: line-through; }
+    /* ── Passage text ───────────────────────────── */
+    .passage-title { font-size:1rem; font-weight:700; color:var(--primary); margin-bottom:14px; }
+    #passageText   { font-family:Georgia,serif; font-size:1.22rem; line-height:2.15; }
+    .w             { display:inline; padding:1px 2px; border-radius:3px; transition:all .25s; }
+    .w.correct     { background:var(--success-bg); color:#065f46; }
+    .w.incorrect   { background:var(--danger-bg); color:#7f1d1d; text-decoration:line-through; }
 
-    /* ── Controls ── */
-    .controls {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-    }
+    /* ── Controls ───────────────────────────────── */
+    .controls      { display:flex; flex-direction:column; align-items:center; gap:14px; }
     #recordBtn {
-      width: 84px; height: 84px;
-      border-radius: 50%;
-      border: none;
-      cursor: pointer;
-      font-size: 2rem;
-      display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, var(--primary-light), var(--primary));
-      color: #fff;
-      box-shadow: 0 6px 24px rgba(91,33,182,.35);
-      transition: transform .25s, box-shadow .25s;
+      width:82px; height:82px; border-radius:50%; border:none; cursor:pointer;
+      font-size:1.9rem; display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg,var(--primary-lt),var(--primary));
+      color:#fff; box-shadow:0 6px 24px rgba(91,33,182,.35); transition:transform .25s;
     }
-    #recordBtn:hover:not(:disabled) { transform: scale(1.06); }
-    #recordBtn:disabled { opacity: .5; cursor: not-allowed; }
+    #recordBtn:hover:not(:disabled) { transform:scale(1.06); }
+    #recordBtn:disabled { opacity:.5; cursor:not-allowed; }
     #recordBtn.recording {
-      background: linear-gradient(135deg, #f87171, var(--danger));
-      box-shadow: 0 6px 24px rgba(220,38,38,.4);
-      animation: ripple 1.5s infinite;
+      background:linear-gradient(135deg,#f87171,var(--danger));
+      box-shadow:0 6px 24px rgba(220,38,38,.4);
+      animation:ripple 1.5s infinite;
     }
     @keyframes ripple {
-      0%   { box-shadow: 0 0 0 0   rgba(220,38,38,.45); }
-      70%  { box-shadow: 0 0 0 18px rgba(220,38,38,0);  }
-      100% { box-shadow: 0 0 0 0   rgba(220,38,38,0);   }
+      0%   { box-shadow:0 0 0 0   rgba(220,38,38,.45); }
+      70%  { box-shadow:0 0 0 18px rgba(220,38,38,0);  }
+      100% { box-shadow:0 0 0 0   rgba(220,38,38,0);   }
     }
-    #statusText {
-      font-size: .9rem;
-      font-weight: 500;
-      color: var(--muted);
-      text-align: center;
-    }
-    #statusText.live { color: var(--danger); }
-    .btn-row { display: flex; gap: 10px; }
+    #statusText      { font-size:.9rem; font-weight:500; color:var(--muted); text-align:center; }
+    #statusText.live { color:var(--danger); }
     .ghost-btn {
-      padding: 7px 18px;
-      border-radius: 8px;
-      border: 2px solid var(--border);
-      background: transparent;
-      cursor: pointer;
-      font-size: .84rem;
-      color: var(--muted);
-      transition: all .2s;
+      padding:7px 18px; border-radius:8px; border:2px solid var(--border);
+      background:transparent; cursor:pointer; font-size:.84rem; color:var(--muted); transition:all .2s;
     }
-    .ghost-btn:hover { border-color: var(--primary-light); color: var(--primary); }
+    .ghost-btn:hover { border-color:var(--primary-lt); color:var(--primary); }
 
-    /* ── Transcript ── */
-    #transcriptText {
-      font-size: 1rem;
-      line-height: 1.85;
-      min-height: 64px;
-      color: var(--text);
-    }
-    .interim { color: var(--muted); font-style: italic; }
-    .placeholder { color: #9ca3af; font-style: italic; }
+    /* ── Transcript ─────────────────────────────── */
+    #transcriptText { font-size:1rem; line-height:1.85; min-height:64px; }
+    .interim        { color:var(--muted); font-style:italic; }
+    .placeholder    { color:#9ca3af; font-style:italic; }
 
-    /* ── Results ── */
-    #resultsCard { display: none; }
-    #resultsCard.visible { display: block; }
+    /* ── Results ────────────────────────────────── */
+    #resultsCard         { display:none; }
+    #resultsCard.visible { display:block; }
 
-    .results-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .results-title { font-size: 1.1rem; font-weight: 800; }
+    .results-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+    .results-title  { font-size:1.1rem; font-weight:800; }
 
-    .grade-badge {
-      font-size: 1.5rem;
-      font-weight: 800;
-      padding: 4px 16px;
-      border-radius: 10px;
-    }
-    .grade-A { background: var(--success-bg); color: var(--success); }
-    .grade-B { background: #dbeafe; color: #1d4ed8; }
-    .grade-C { background: #fef3c7; color: #92400e; }
-    .grade-D { background: #ffedd5; color: #c2410c; }
-    .grade-F { background: var(--danger-bg); color: var(--danger); }
+    .grade-badge  { font-size:1.4rem; font-weight:800; padding:4px 14px; border-radius:10px; }
+    .grade-Ap,.grade-A { background:#d1fae5; color:#065f46; }
+    .grade-B               { background:#dbeafe; color:#1e40af; }
+    .grade-C               { background:#fef3c7; color:#92400e; }
+    .grade-D               { background:#ffedd5; color:#9a3412; }
+    .grade-F               { background:#fee2e2; color:#991b1b; }
 
-    .score-row {
-      display: flex;
-      gap: 14px;
-      margin-bottom: 18px;
+    /* replay */
+    .replay-row {
+      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+      background:var(--primary-pale); border-radius:12px; padding:12px 16px; margin-bottom:18px;
     }
-    .score-box {
-      flex: 1;
-      text-align: center;
-      padding: 16px 8px;
-      background: var(--primary-pale);
-      border-radius: 12px;
-    }
-    .score-value { font-size: 1.9rem; font-weight: 800; color: var(--primary); }
-    .score-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-top: 3px; }
+    .replay-label { font-size:.82rem; font-weight:700; color:var(--primary); white-space:nowrap; }
+    #replayAudio  { flex:1; min-width:180px; height:34px; }
 
-    .bar-wrap {
-      background: #e5e7eb;
-      border-radius: 50px;
-      height: 12px;
-      overflow: hidden;
-      margin-bottom: 22px;
-    }
-    #accuracyBar {
-      height: 100%;
-      border-radius: 50px;
-      background: linear-gradient(90deg, #10b981, #059669);
-      width: 0%;
-      transition: width 1s ease, background 1s ease;
-    }
+    /* scores */
+    .score-row  { display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+    .score-box  { flex:1; min-width:80px; text-align:center; padding:14px 8px; background:var(--primary-pale); border-radius:12px; }
+    .score-value { font-size:1.75rem; font-weight:800; color:var(--primary); }
+    .score-label { font-size:.67rem; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); margin-top:3px; }
 
-    .analysis-wrap { margin-top: 4px; }
-    .analysis-wrap h4 {
-      font-size: .72rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-    .legend {
-      display: flex; gap: 16px; flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
-    .legend-item { display: flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--muted); }
-    .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+    .bar-wrap    { background:#e5e7eb; border-radius:50px; height:12px; overflow:hidden; margin-bottom:20px; }
+    #accuracyBar { height:100%; border-radius:50px; background:linear-gradient(90deg,#10b981,#059669); width:0%; transition:width 1s ease, background 1s; }
+
+    /* word analysis */
+    .analysis-wrap h4 { font-size:.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+    .legend      { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px; }
+    .legend-item { display:flex; align-items:center; gap:6px; font-size:.78rem; color:var(--muted); }
+    .legend-dot  { width:12px; height:12px; border-radius:3px; }
+    .wr-wrap     { line-height:2.6; }
 
     .wr {
-      display: inline-block;
-      padding: 3px 9px;
-      margin: 3px;
-      border-radius: 6px;
-      font-family: Georgia, serif;
-      font-size: .92rem;
+      display:inline-flex; align-items:center; gap:3px;
+      padding:3px 9px; margin:3px 2px; border-radius:6px;
+      font-family:Georgia,serif; font-size:.9rem;
     }
-    .wr.match { background: var(--success-bg); color: #065f46; }
-    .wr.miss  { background: var(--danger-bg);  color: #7f1d1d; text-decoration: line-through; }
-
-    .tip-box {
-      margin-top: 18px;
-      padding: 12px 16px;
-      background: #f0fdf4;
-      border-left: 4px solid #10b981;
-      border-radius: 0 8px 8px 0;
-      font-size: .85rem;
-      color: #065f46;
+    .wr.match { background:var(--success-bg); color:#065f46; }
+    .wr.miss  { background:var(--danger-bg);  color:#7f1d1d; text-decoration:line-through; }
+    .wr-icon {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:20px; height:20px; border-radius:4px; border:none;
+      cursor:pointer; font-size:.72rem; padding:0;
+      background:rgba(220,38,38,.13); color:#991b1b; transition:background .15s;
     }
+    .wr-icon:hover { background:rgba(220,38,38,.27); }
 
-    footer {
-      text-align: center;
-      padding: 0 0 24px;
-      color: var(--muted);
-      font-size: .78rem;
+    .tip-box { margin-top:16px; padding:12px 16px; background:#f0fdf4; border-left:4px solid #10b981; border-radius:0 8px 8px 0; font-size:.85rem; color:#065f46; }
+
+    /* ── Practice modal ─────────────────────────── */
+    #practiceModal {
+      display:none; position:fixed; inset:0; z-index:200;
+      background:rgba(15,10,40,.65); backdrop-filter:blur(5px);
+      align-items:center; justify-content:center; padding:16px;
     }
+    #practiceModal.open { display:flex; }
+    .modal-card { background:#fff; border-radius:20px; padding:28px; width:100%; max-width:420px; box-shadow:0 24px 64px rgba(0,0,0,.28); }
+    .modal-hdr  { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+    .modal-subtitle { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
+    .modal-word { font-family:Georgia,serif; font-size:2.1rem; font-weight:700; color:var(--primary); margin:4px 0 22px; }
+    .modal-close { background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--muted); line-height:1; }
+    .modal-close:hover { color:var(--text); }
+    .modal-section { margin-bottom:20px; }
+    .modal-sec-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+    .btn-row2       { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 
-    @media (max-width: 520px) {
-      #passageText { font-size: 1.1rem; }
-      .score-value { font-size: 1.4rem; }
+    .btn-primary {
+      padding:9px 18px; border-radius:10px; border:none; cursor:pointer;
+      font-size:.88rem; font-weight:600; color:#fff;
+      background:linear-gradient(135deg,var(--primary-lt),var(--primary));
+      display:inline-flex; align-items:center; gap:5px; transition:opacity .2s;
+    }
+    .btn-primary:hover { opacity:.87; }
+    .btn-danger  {
+      padding:9px 18px; border-radius:10px; border:none; cursor:pointer;
+      font-size:.88rem; font-weight:600; color:#fff;
+      background:linear-gradient(135deg,#f87171,var(--danger));
+      display:inline-flex; align-items:center; gap:5px; transition:opacity .2s;
+    }
+    .btn-danger:hover  { opacity:.87; }
+    .btn-speed {
+      padding:5px 12px; border-radius:6px; border:1.5px solid var(--border);
+      background:transparent; cursor:pointer; font-size:.8rem; color:var(--muted); transition:all .2s;
+    }
+    .btn-speed:hover { border-color:var(--primary-lt); color:var(--primary); }
+
+    #practicePlayer { display:none; margin-top:12px; width:100%; height:34px; }
+
+    .rec-indicator       { display:none; align-items:center; gap:6px; font-size:.8rem; color:var(--danger); font-weight:600; }
+    .rec-indicator.show  { display:flex; }
+    .rec-dot             { width:8px; height:8px; border-radius:50%; background:var(--danger); animation:blink 1s infinite; }
+    .timer-txt           { font-size:.8rem; color:var(--danger); font-weight:600; min-width:30px; }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+
+    /* ── Footer ─────────────────────────────────── */
+    footer { text-align:center; padding:0 0 24px; color:var(--muted); font-size:.77rem; }
+
+    @media(max-width:520px){
+      #passageText  { font-size:1.08rem; }
+      .score-value  { font-size:1.4rem; }
+      .passage-grid { grid-template-columns:1fr; }
+      .modal-word   { font-size:1.6rem; }
     }
   </style>
 </head>
@@ -303,16 +230,19 @@
 <div id="browserNotice"></div>
 
 <header>
-  <div class="logo">Read<em>Along</em></div>
-  <div class="tagline">Reading Accuracy Trainer</div>
+  <div class="header-top">
+    <div class="logo">Read<em>Along</em></div>
+    <div class="tagline">Reading Accuracy Trainer</div>
+  </div>
+  <div class="theme-tabs" id="themeTabs"></div>
 </header>
 
 <div class="container">
 
-  <!-- Passage selector -->
+  <!-- Passage picker -->
   <div class="card">
-    <div class="card-label">Choose a Reading Passage</div>
-    <div class="passage-selector" id="passageSelector"></div>
+    <div class="card-label" id="passageGridLabel">Choose a Passage</div>
+    <div class="passage-grid" id="passageGrid"></div>
   </div>
 
   <!-- Reading passage -->
@@ -324,19 +254,15 @@
 
   <!-- Controls -->
   <div class="card controls">
-    <button id="recordBtn" title="Click to start / stop recording">🎤</button>
+    <button id="recordBtn" title="Start / Stop recording">🎤</button>
     <div id="statusText">Click the microphone to start reading aloud</div>
-    <div class="btn-row">
-      <button class="ghost-btn" id="resetBtn">↺ Reset</button>
-    </div>
+    <button class="ghost-btn" id="resetBtn">↺ Reset</button>
   </div>
 
-  <!-- Live transcript -->
+  <!-- Transcript -->
   <div class="card">
     <div class="card-label">Live Transcript</div>
-    <div id="transcriptText">
-      <span class="placeholder">Your spoken words will appear here in real time…</span>
-    </div>
+    <div id="transcriptText"><span class="placeholder">Your spoken words will appear here in real time…</span></div>
   </div>
 
   <!-- Results -->
@@ -346,19 +272,17 @@
       <div class="grade-badge" id="gradeBadge"></div>
     </div>
 
+    <!-- Replay -->
+    <div class="replay-row" id="replayRow" style="display:none">
+      <div class="replay-label">🎧 Replay Your Reading</div>
+      <audio id="replayAudio" controls></audio>
+    </div>
+
+    <!-- Scores -->
     <div class="score-row">
-      <div class="score-box">
-        <div class="score-value" id="scoreAccuracy">—</div>
-        <div class="score-label">Accuracy</div>
-      </div>
-      <div class="score-box">
-        <div class="score-value" id="scoreWords">—</div>
-        <div class="score-label">Words Correct</div>
-      </div>
-      <div class="score-box">
-        <div class="score-value" id="scoreWPM">—</div>
-        <div class="score-label">Words / Min</div>
-      </div>
+      <div class="score-box"><div class="score-value" id="scoreAccuracy">—</div><div class="score-label">Accuracy</div></div>
+      <div class="score-box"><div class="score-value" id="scoreWords">—</div><div class="score-label">Words Correct</div></div>
+      <div class="score-box"><div class="score-value" id="scoreWPM">—</div><div class="score-label">Words / Min</div></div>
     </div>
 
     <div class="bar-wrap"><div id="accuracyBar"></div></div>
@@ -372,139 +296,279 @@
         </div>
         <div class="legend-item">
           <div class="legend-dot" style="background:var(--danger-bg);border:1px solid #fca5a5;"></div>
-          Missed / mispronounced
+          Missed — <strong>🔊</strong> hear correct &nbsp;|&nbsp; <strong>🎤</strong> practice it
         </div>
       </div>
-      <div id="wordAnalysis"></div>
+      <div class="wr-wrap" id="wordAnalysis"></div>
     </div>
 
     <div class="tip-box" id="tipBox"></div>
   </div>
 
+</div><!-- .container -->
+
+<footer>ReadAlong uses your browser's built-in speech recognition. Audio is processed locally and never sent to any server.</footer>
+
+<!-- ── Word Practice Modal ───────────────────── -->
+<div id="practiceModal">
+  <div class="modal-card">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-subtitle">Word Practice</div>
+        <div class="modal-word" id="practiceWordDisplay"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <!-- Correct pronunciation -->
+    <div class="modal-section">
+      <div class="modal-sec-label">🔊 Correct Pronunciation</div>
+      <div class="btn-row2">
+        <button class="btn-primary" onclick="speakPracticeWord(1)">🔊 Hear it</button>
+        <button class="btn-speed"   onclick="speakPracticeWord(0.6)">🐢 Slowly</button>
+      </div>
+    </div>
+
+    <!-- User attempt -->
+    <div class="modal-section">
+      <div class="modal-sec-label">
+        🎤 Your Pronunciation
+        <span class="rec-indicator" id="practiceRecInd"><span class="rec-dot"></span> Recording</span>
+      </div>
+      <div class="btn-row2">
+        <button class="btn-danger" id="practiceRecBtn" onclick="togglePracticeRec()">🎤 Record</button>
+        <span class="timer-txt" id="practiceTimerTxt"></span>
+      </div>
+      <audio id="practicePlayer" controls></audio>
+    </div>
+
+    <div style="font-size:.76rem;color:var(--muted);margin-top:-8px;">Max 5 seconds · compare your attempt with the correct pronunciation above</div>
+  </div>
 </div>
 
-<footer>ReadAlong uses your browser's built-in speech recognition — audio is processed locally and never sent to our servers.</footer>
-
 <script>
-// ─────────────────────────────────────────────
-// Passages
-// ─────────────────────────────────────────────
-const PASSAGES = [
+// ═══════════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════════
+const THEMES = [
   {
-    id: 'easy1', level: 'easy',
-    title: 'The Lion and the Mouse',
-    text: 'Once a great lion was sleeping in the forest. A little mouse ran over his paw and woke him up. The lion caught the mouse and was about to eat him. The little mouse begged, please let me go. Someday I will help you. The lion laughed but let the mouse go free. Later some hunters caught the lion in a strong net. The mouse heard the lion roar. He ran to the lion and chewed through the ropes of the net. The lion was free at last. Even a small friend can be a great help.'
+    id:'stories', name:'📖 Stories',
+    passages:[
+      {
+        id:'s1', title:'The Tortoise and the Hare', level:'easy',
+        text:'Once upon a time a hare challenged a tortoise to a race. Everyone laughed because the tortoise was so slow. The hare sprinted ahead and soon he was far in the lead. Feeling sure of himself, he stopped under a shady tree and fell fast asleep. The tortoise never stopped. One steady step at a time, he plodded along the dusty path. When the hare finally woke up he dashed to the finish line as fast as his legs could carry him. But the tortoise was already there, smiling quietly. Slow and steady wins the race.'
+      },
+      {
+        id:'s2', title:'The Selfish Giant', level:'medium',
+        text:'Every afternoon when children came home from school they played in the giant\'s beautiful garden. It had soft green grass and peach trees that burst into blossom every spring. But one day the giant returned from a long journey and drove the children away. He built a high stone wall around the garden and put up a sign that said keep out. After that spring never came to his garden. Snow covered the flowers and frost crept across the trees. The birds refused to sing. The giant sat alone and cold inside his great house. One morning he heard a delicate sound drifting through the window. He looked out and saw that the children had crept back through a small hole in the wall. In every corner where a child had climbed, the trees had burst into blossom.'
+      },
+      {
+        id:'s3', title:'The Lighthouse Keeper', level:'hard',
+        text:'For forty years Thomas had kept the lamp burning on the rocky headland above the bay. Sailors from distant ports knew his lighthouse as a faithful star. On the night of the great storm, when waves crashed thirty feet above the dock and the wind howled like something living, Thomas climbed the iron staircase for what he sensed would be the last time. He had kept his promise to the sea and to the men who sailed it. What no one in the village ever knew was that on a stormy night long ago, his own father\'s ship had been guided safely into harbor by that same light. Every night since then, keeping the lamp had been not merely a duty but an act of love quietly repaid across the years.'
+      }
+    ]
   },
   {
-    id: 'easy2', level: 'easy',
-    title: 'A Walk in the Park',
-    text: 'On a bright Saturday morning, Sam and his dog Biscuit went to the park. The park had tall green trees and a shiny blue pond. Biscuit loved to run and play fetch. Sam threw a red ball far across the soft grass. Biscuit sprinted and brought it back every time. They played for a long time until they were both tired. Then they sat together under a wide oak tree to rest and cool down. Sam drank from his water bottle and shared some with Biscuit. It was a wonderful morning.'
+    id:'motivational', name:'🔥 Motivational',
+    passages:[
+      {
+        id:'m1', title:'Every Step Forward', level:'easy',
+        text:'You do not have to be perfect to start. You just have to start. Every great journey begins with a single step forward. When things feel too hard, take a breath and try once more. Small progress is still progress. Each time you try you learn something new. Each time you fall you grow a little stronger. The most successful people in the world were not born knowing everything. They worked hard, made mistakes, and kept going. Believe in yourself even when things feel impossible. Your effort today is building the person you will become tomorrow. Keep going. You are closer than you think.'
+      },
+      {
+        id:'m2', title:'Rising After Failure', level:'medium',
+        text:'Failure is not the opposite of success. It is a part of success. Every inventor, artist, and leader has faced moments of defeat. Thomas Edison failed more than a thousand times before he produced a working lightbulb. He described each failure not as a setback but as one more thing he had learned. When you stumble and fall you discover things about yourself that comfort and ease can never teach you. The sting of failure sharpens your focus, clarifies your goals, and deepens your determination. Do not be afraid of falling short. Be afraid only of never trying at all. The courage to begin again after failure is one of the most powerful forces a person can possess.'
+      },
+      {
+        id:'m3', title:'The Language of Courage', level:'hard',
+        text:'Courage is not the absence of fear. It is the recognition that something matters more than the fear you feel in a given moment. Throughout history the most transformative acts of human bravery have been performed by ordinary men and women who were deeply afraid yet chose to act anyway. They spoke when silence would have been safer. They stood when sitting would have been easier. They built bridges across chasms that others believed uncrossable. This is the nature of true courage. It is quiet, deliberate, and profoundly human. The world does not need fearless people. It needs people who understand their fear, acknowledge it honestly, and choose to move forward in spite of it. That choice, made again and again, is how lives and histories are changed.'
+      }
+    ]
   },
   {
-    id: 'medium1', level: 'medium',
-    title: 'The Water Cycle',
-    text: 'Water is constantly moving around our planet in a continuous process called the water cycle. The sun heats water in oceans, lakes, and rivers, causing it to evaporate and rise into the atmosphere as invisible water vapor. As the vapor rises it cools and condenses into tiny water droplets, forming clouds and fog. When those droplets combine and grow heavy enough, they fall back to Earth as precipitation in the form of rain, snow, sleet, or hail. This water then collects in rivers and lakes, seeps into the ground, or flows back to the ocean, and the entire cycle begins again.'
+    id:'communication', name:'💬 Communication',
+    passages:[
+      {
+        id:'c1', title:'Meeting Someone New', level:'easy',
+        text:'Hello, my name is Alex and I am very pleased to meet you. I work as a teacher at a local primary school. I have been teaching for about five years now and I love it. Working with children and helping them discover new things is the most rewarding part of my day. In my free time I enjoy reading, cooking, and going for long walks in the park. I moved to this city two years ago and I have been made to feel very welcome here. Everyone I have met has been so kind and friendly. I hope we have the chance to get to know each other better. Please feel free to ask me anything at all.'
+      },
+      {
+        id:'c2', title:'Giving a Presentation', level:'medium',
+        text:'Good morning everyone and thank you for taking the time to join us today. I would like to talk about something I believe is important for all of us. Over the next few minutes I will share key findings from our recent research and explain how they might shape the way we work going forward. I will begin with a brief overview of the background, then walk through the main results, and close with some thoughts on what we might do next. Please feel free to ask questions at any point during the talk. Your questions and perspectives are always valuable and I genuinely look forward to hearing them. So without further delay, let us get started.'
+      },
+      {
+        id:'c3', title:'Navigating Difficult Conversations', level:'hard',
+        text:'There are moments in professional and personal life when we must engage with perspectives that challenge our own deeply held beliefs. In these moments the quality of our listening matters far more than the persuasiveness of our speaking. Effective communication in difficult circumstances requires us to create space for the other person\'s experience without feeling immediately compelled to defend or justify our own position. It demands that we distinguish between the content of what is being said and the emotional intensity with which it is delivered. When we can hold that distinction steady, we open the possibility of genuine understanding. And genuine understanding, even when it does not lead to agreement, is always the foundation of a productive and respectful dialogue.'
+      }
+    ]
   },
   {
-    id: 'medium2', level: 'medium',
-    title: 'The Life of Bees',
-    text: 'Honeybees are among the most important insects on Earth. A single colony can contain up to eighty thousand individual bees, each with a specific role. The queen bee is responsible for laying eggs and can produce up to two thousand eggs per day during peak season. Worker bees collect pollen and nectar from flowers, which they bring back to the hive and process into honey. This honey serves as food for the entire colony through the long winter months. Without bees, many of the fruits and vegetables that people eat every day could not be produced, because bees are essential pollinators.'
+    id:'general', name:'🌍 General',
+    passages:[
+      {
+        id:'g1', title:'Weather Around the World', level:'easy',
+        text:'The weather around the world can be very different depending on where you live. In some countries the sun shines nearly every day and temperatures stay warm all year round. In other places there are four distinct seasons. Spring brings flowers and mild breezes. Summer is hot and bright. Autumn turns the leaves red and gold. Winter brings cold winds and sometimes snow. Near the equator the climate is hot and wet, and thick rainforests grow because so much rain falls throughout the year. Near the poles it is always cold and covered in ice. People who live in these extreme places have found clever ways to keep warm and to build shelter against the harsh conditions.'
+      },
+      {
+        id:'g2', title:'How the Internet Works', level:'medium',
+        text:'When you send a message online or load a webpage, the information travels across a vast global network of cables, routers, and servers. Your device breaks the data into small packets, each labeled with a destination address. These packets may travel by entirely different routes, crossing fiber-optic cables laid under oceans or bouncing through wireless signals in the air. At every step, routers read each packet\'s address and direct it forward, much like a post office sorting millions of letters at once. When all the packets arrive your device reassembles them into the original message or page. This entire process typically takes less than one second, allowing billions of people around the world to communicate and share information almost instantly.'
+      },
+      {
+        id:'g3', title:'The Human Brain', level:'hard',
+        text:'The human brain is arguably the most complex structure in the known universe. Weighing approximately three pounds and consuming roughly twenty percent of the body\'s total energy despite comprising only two percent of its mass, the brain coordinates every conscious and unconscious process that sustains human life. It contains approximately eighty-six billion neurons, each capable of forming thousands of synaptic connections, creating a network of staggering computational power. The prefrontal cortex, located directly behind the forehead, governs executive functions such as planning, decision-making, and impulse control. The limbic system, nestled deeper within, regulates emotion and memory. Modern neuroscience continues to show that the brain remains remarkably adaptable throughout life, a property known as neuroplasticity, meaning that learning and experience can physically reshape its structure even in adulthood.'
+      }
+    ]
   },
   {
-    id: 'hard1', level: 'hard',
-    title: 'The Renaissance',
-    text: 'The Renaissance was a period of profound cultural and intellectual transformation that swept through Europe from the fourteenth to the seventeenth century. Emerging first in the prosperous Italian city-states, this movement represented a renewed interest in the classical knowledge of ancient Greece and Rome. Artists, philosophers, and scientists began to challenge long-established medieval traditions, placing far greater emphasis on human potential, individual achievement, and empirical observation of the natural world. Leonardo da Vinci exemplified the Renaissance ideal of the universal genius, excelling simultaneously in painting, sculpture, engineering, mathematics, and scientific inquiry. This extraordinary era ultimately laid much of the intellectual groundwork for the modern world we inhabit today.'
-  },
-  {
-    id: 'hard2', level: 'hard',
-    title: 'Ocean Ecosystems',
-    text: 'The ocean covers more than seventy percent of Earth\'s surface and contains the vast majority of its living space. Marine ecosystems range from the sunlit shallows of coral reefs, which support an extraordinary diversity of species despite occupying less than one percent of the ocean floor, to the perpetually dark hadal zones of the deep trenches, where bizarre and highly adapted organisms survive under crushing pressure and near-freezing temperatures. Phytoplankton, microscopic photosynthetic organisms drifting near the surface, generate roughly half of all the oxygen in Earth\'s atmosphere and form the foundation of nearly every marine food web. The health of these interconnected systems is therefore critical not only to ocean life but to the stability of the entire biosphere.'
+    id:'sympathetic', name:'💜 Sympathetic',
+    passages:[
+      {
+        id:'sy1', title:'A Note to a Friend', level:'easy',
+        text:'I know that right now things feel really difficult for you. I want you to know that I am here. You do not have to face any of this alone. When you feel sad or lost or overwhelmed, please reach out. I will always listen without judgment and without trying to rush you through what you are feeling. Some days are heavy and that is completely okay. It is okay to cry. It is okay to say that you are struggling. Asking for support is one of the bravest things a person can do. You have been there for so many people. Please let us be here for you now. Whatever you need, I am not going anywhere. You matter more than you know.'
+      },
+      {
+        id:'sy2', title:'Words for a Difficult Time', level:'medium',
+        text:'Grief does not follow a schedule or a neat and tidy path. It arrives without warning, sometimes long after you believed it had passed. There is no right or wrong way to move through loss. Some days you may feel surprisingly strong and clear-headed. Other days the weight of what you carry may feel completely unbearable. Both of those experiences are entirely valid and both deserve to be honoured. What matters most is that you allow yourself to feel what you feel without rushing toward some imagined finish line. Time does not always heal everything, but it does slowly change the shape of things. Gradually the pain that once felt sharp and constant may become something softer, something that you can carry with more ease.'
+      },
+      {
+        id:'sy3', title:'On Empathy and Human Connection', level:'hard',
+        text:'To truly empathise with another person is one of the most demanding and most beautiful things we can do as human beings. It requires us to set aside the natural impulse to offer quick solutions, to compare experiences, or to minimise what the other person is feeling. It asks us instead to enter as fully as we are able into the emotional reality of someone else\'s life. This is not a passive act. It demands concentration, humility, and a willingness to sit with discomfort alongside the person who is suffering. When we offer genuine empathy we do not promise that things will improve or that the pain will end. We say simply, with our presence and attention, that this person\'s experience matters and that they are not invisible. In a world that often moves too fast to notice one another\'s pain, that quiet act of faithful attention is among the most profound gifts we can give.'
+      }
+    ]
   }
 ];
 
-// ─────────────────────────────────────────────
-// State
-// ─────────────────────────────────────────────
-let currentPassage = PASSAGES[0];
-let recognition    = null;
-let isRecording    = false;
-let finalText      = '';
-let startTime      = null;
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let currentThemeId  = THEMES[0].id;
+let currentPassage  = THEMES[0].passages[0];
+let recognition     = null;
+let isRecording     = false;
+let finalText       = '';
+let startTime       = null;
+let recordInterval  = null;
+let recordSeconds   = 0;
 
-// ─────────────────────────────────────────────
-// DOM refs
-// ─────────────────────────────────────────────
-const passageSelectorEl = document.getElementById('passageSelector');
-const passageTitleEl    = document.getElementById('passageTitle');
-const passageTextEl     = document.getElementById('passageText');
-const recordBtn         = document.getElementById('recordBtn');
-const statusText        = document.getElementById('statusText');
-const resetBtn          = document.getElementById('resetBtn');
-const transcriptTextEl  = document.getElementById('transcriptText');
-const resultsCard       = document.getElementById('resultsCard');
-const gradeBadge        = document.getElementById('gradeBadge');
-const scoreAccuracy     = document.getElementById('scoreAccuracy');
-const scoreWords        = document.getElementById('scoreWords');
-const scoreWPM          = document.getElementById('scoreWPM');
-const accuracyBar       = document.getElementById('accuracyBar');
-const wordAnalysis      = document.getElementById('wordAnalysis');
-const tipBox            = document.getElementById('tipBox');
-const browserNotice     = document.getElementById('browserNotice');
+// MediaRecorder
+let micStream       = null;
+let mediaRecorder   = null;
+let audioChunks     = [];
+let recordingBlob   = null;
+let replayBlobUrl   = null;
 
-// ─────────────────────────────────────────────
-// Browser check
-// ─────────────────────────────────────────────
+// Practice modal
+let practiceWordStr    = '';
+let practiceStream     = null;
+let practiceRecorder   = null;
+let practiceIsRecording= false;
+let practiceTimerInt   = null;
+let practiceSecsLeft   = 5;
+let practiceBlobUrl    = null;
+
+// ═══════════════════════════════════════════════════════════
+//  DOM REFS
+// ═══════════════════════════════════════════════════════════
+const themeTabsEl   = document.getElementById('themeTabs');
+const passageGrid   = document.getElementById('passageGrid');
+const passageTitle  = document.getElementById('passageTitle');
+const passageTextEl = document.getElementById('passageText');
+const recordBtn     = document.getElementById('recordBtn');
+const statusText    = document.getElementById('statusText');
+const resetBtn      = document.getElementById('resetBtn');
+const transcriptEl  = document.getElementById('transcriptText');
+const resultsCard   = document.getElementById('resultsCard');
+const replayRow     = document.getElementById('replayRow');
+const replayAudio   = document.getElementById('replayAudio');
+const gradeBadge    = document.getElementById('gradeBadge');
+const scoreAccuracy = document.getElementById('scoreAccuracy');
+const scoreWords    = document.getElementById('scoreWords');
+const scoreWPM      = document.getElementById('scoreWPM');
+const accuracyBar   = document.getElementById('accuracyBar');
+const wordAnalysis  = document.getElementById('wordAnalysis');
+const tipBox        = document.getElementById('tipBox');
+const browserNotice = document.getElementById('browserNotice');
+const practiceModal = document.getElementById('practiceModal');
+const practiceWordDisplay = document.getElementById('practiceWordDisplay');
+const practiceRecBtn      = document.getElementById('practiceRecBtn');
+const practiceRecInd      = document.getElementById('practiceRecInd');
+const practiceTimerTxt    = document.getElementById('practiceTimerTxt');
+const practicePlayer      = document.getElementById('practicePlayer');
+
+// ═══════════════════════════════════════════════════════════
+//  BROWSER CHECK
+// ═══════════════════════════════════════════════════════════
 const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+const hasMediaRecorder     = !!(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+const hasTTS               = !!window.speechSynthesis;
 
 if (!SpeechRecognitionAPI) {
   browserNotice.style.display = 'block';
-  browserNotice.innerHTML = '❌ Speech recognition is not supported in this browser. Please open this page in <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>.';
+  browserNotice.innerHTML = '❌ Speech recognition is not supported. Please open this page in <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>.';
   recordBtn.disabled = true;
-} else if (!window.SpeechRecognition && window.webkitSpeechRecognition) {
+} else if (!window.SpeechRecognition) {
   browserNotice.style.display = 'block';
-  browserNotice.innerHTML = '💡 Tip: For best results use <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>. Other browsers may have limited support.';
+  browserNotice.innerHTML = '💡 For best results use <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>.';
 }
 
-// ─────────────────────────────────────────────
-// Passage selector UI
-// ─────────────────────────────────────────────
-function renderSelector() {
-  passageSelectorEl.innerHTML = PASSAGES.map(p => `
-    <button class="psel-btn ${p.id === currentPassage.id ? 'active' : ''}"
-            onclick="selectPassage('${p.id}')">
-      ${p.title}
+// ═══════════════════════════════════════════════════════════
+//  THEME & PASSAGE UI
+// ═══════════════════════════════════════════════════════════
+function renderThemeTabs() {
+  themeTabsEl.innerHTML = THEMES.map(t => `
+    <button class="theme-tab ${t.id === currentThemeId ? 'active' : ''}"
+            onclick="switchTheme('${t.id}')">${t.name}</button>
+  `).join('');
+}
+
+function switchTheme(id) {
+  if (isRecording) stopRecording();
+  currentThemeId = id;
+  const theme = THEMES.find(t => t.id === id);
+  currentPassage = theme.passages[0];
+  renderThemeTabs();
+  renderPassageGrid();
+  renderPassage();
+  resetResults();
+}
+
+function renderPassageGrid() {
+  const theme = THEMES.find(t => t.id === currentThemeId);
+  passageGrid.innerHTML = theme.passages.map(p => `
+    <div class="pcard ${p.id === currentPassage.id ? 'active' : ''}" onclick="selectPassage('${p.id}')">
+      <div class="pcard-title">${p.title}</div>
       <span class="badge ${p.level}">${p.level}</span>
-    </button>
+    </div>
   `).join('');
 }
 
 function selectPassage(id) {
   if (isRecording) stopRecording();
-  currentPassage = PASSAGES.find(p => p.id === id);
-  reset();
-  renderSelector();
+  const theme = THEMES.find(t => t.id === currentThemeId);
+  currentPassage = theme.passages.find(p => p.id === id);
+  renderPassageGrid();
+  renderPassage();
+  resetResults();
+  // reset transcript
+  finalText = '';
+  transcriptEl.innerHTML = '<span class="placeholder">Your spoken words will appear here in real time…</span>';
 }
 
-// ─────────────────────────────────────────────
-// Passage display
-// ─────────────────────────────────────────────
 function renderPassage(matchedSet) {
-  passageTitleEl.textContent = currentPassage.title;
+  passageTitle.textContent = currentPassage.title;
   const words = currentPassage.text.split(/\s+/).filter(Boolean);
-
   if (matchedSet) {
-    passageTextEl.innerHTML = words.map((w, i) => {
-      const cls = matchedSet.has(i) ? 'correct' : 'incorrect';
-      return `<span class="w ${cls}">${w}</span>`;
-    }).join(' ');
+    passageTextEl.innerHTML = words.map((w, i) =>
+      `<span class="w ${matchedSet.has(i) ? 'correct' : 'incorrect'}">${w}</span>`
+    ).join(' ');
   } else {
     passageTextEl.textContent = currentPassage.text;
   }
 }
 
-// ─────────────────────────────────────────────
-// Recording
-// ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+//  SPEECH RECOGNITION
+// ═══════════════════════════════════════════════════════════
 function buildRecognition() {
   const r = new SpeechRecognitionAPI();
   r.continuous      = true;
@@ -515,8 +579,8 @@ function buildRecognition() {
   r.onstart = () => {
     recordBtn.classList.add('recording');
     recordBtn.innerHTML = '⏹';
-    statusText.textContent = '🔴 Listening… read the passage aloud at a natural pace';
     statusText.classList.add('live');
+    startRecordTimer();
   };
 
   r.onresult = (e) => {
@@ -526,69 +590,95 @@ function buildRecognition() {
       if (e.results[i].isFinal) finalText += t + ' ';
       else interim = t;
     }
-    transcriptTextEl.innerHTML =
+    transcriptEl.innerHTML =
       (finalText  ? `<span>${finalText}</span>` : '') +
       (interim    ? `<span class="interim">${interim}</span>` : '');
-    transcriptTextEl.scrollTop = transcriptTextEl.scrollHeight;
+    transcriptEl.scrollTop = transcriptEl.scrollHeight;
   };
 
   r.onerror = (e) => {
-    if (e.error === 'no-speech') return; // harmless timeout, will auto-restart
+    if (e.error === 'no-speech') return;
     if (e.error === 'not-allowed') {
-      statusText.textContent = '🚫 Microphone access denied. Please allow microphone permissions and try again.';
+      statusText.textContent = '🚫 Microphone access denied. Please allow it and try again.';
       isRecording = false;
       resetRecordBtn();
-    } else {
-      statusText.textContent = `Speech error: ${e.error}. Try again.`;
     }
   };
 
   r.onend = () => {
-    // Auto-restart while user hasn't clicked stop
-    if (isRecording) {
-      try { r.start(); } catch (_) {}
-    }
+    if (isRecording) { try { r.start(); } catch(_) {} }
   };
 
   return r;
 }
 
-function startRecording() {
-  if (!SpeechRecognitionAPI) return;
+// ═══════════════════════════════════════════════════════════
+//  MEDIA RECORDER (full-session audio capture)
+// ═══════════════════════════════════════════════════════════
+function getMimeType() {
+  for (const t of ['audio/webm;codecs=opus','audio/webm','audio/ogg','audio/mp4']) {
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported(t)) return t;
+  }
+  return '';
+}
 
-  // Reset transcript but keep passage clean
-  finalText = '';
-  transcriptTextEl.innerHTML = '<span class="placeholder">Listening…</span>';
-  resultsCard.classList.remove('visible');
-  renderPassage(); // clear any highlights
+async function startMediaRecorder() {
+  if (!hasMediaRecorder) return;
+  try {
+    micStream   = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime  = getMimeType();
+    mediaRecorder = mime ? new MediaRecorder(micStream, { mimeType: mime })
+                         : new MediaRecorder(micStream);
+    audioChunks = [];
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      recordingBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+      if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+    };
+    mediaRecorder.start(200);
+  } catch(err) {
+    console.warn('MediaRecorder failed:', err);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RECORDING CONTROLS
+// ═══════════════════════════════════════════════════════════
+async function startRecording() {
+  if (!SpeechRecognitionAPI) return;
+  finalText     = '';
+  recordingBlob = null;
+  transcriptEl.innerHTML = '<span class="placeholder">Listening…</span>';
+  resetResults();
+
+  await startMediaRecorder();
 
   recognition = buildRecognition();
   try {
     recognition.start();
     isRecording = true;
     startTime   = Date.now();
-  } catch (err) {
+  } catch(err) {
     statusText.textContent = `Could not start: ${err.message}`;
   }
 }
 
 function stopRecording() {
   isRecording = false;
-  if (recognition) {
-    recognition.stop();
-    recognition = null;
-  }
-  resetRecordBtn();
-  statusText.textContent = 'Done! Scroll down to see your results.';
 
-  // Small delay so any final onresult fires
+  stopRecordTimer();
+
+  if (recognition) { recognition.stop(); recognition = null; }
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+
+  resetRecordBtn();
+  statusText.textContent = 'Done! Your results are below ↓';
+
   setTimeout(() => {
     const full = finalText.trim();
     if (full) showResults(full);
-    else {
-      statusText.textContent = 'No speech detected. Try again!';
-    }
-  }, 600);
+    else       statusText.textContent = 'No speech detected — please try again.';
+  }, 700);
 }
 
 function resetRecordBtn() {
@@ -597,77 +687,71 @@ function resetRecordBtn() {
   statusText.classList.remove('live');
 }
 
-// ─────────────────────────────────────────────
-// Button handlers
-// ─────────────────────────────────────────────
-recordBtn.addEventListener('click', () => {
-  if (isRecording) stopRecording();
-  else             startRecording();
-});
+recordBtn.addEventListener('click', () => { isRecording ? stopRecording() : startRecording(); });
+resetBtn.addEventListener('click',  () => { if (isRecording) stopRecording(); resetAll(); });
 
-resetBtn.addEventListener('click', () => {
-  if (isRecording) stopRecording();
-  reset();
-});
-
-function reset() {
+function resetAll() {
   isRecording = false;
   finalText   = '';
   startTime   = null;
-  if (recognition) { recognition.stop(); recognition = null; }
+  recordingBlob = null;
+  if (replayBlobUrl) { URL.revokeObjectURL(replayBlobUrl); replayBlobUrl = null; }
+  stopRecordTimer();
   resetRecordBtn();
   statusText.textContent = 'Click the microphone to start reading aloud';
-  transcriptTextEl.innerHTML = '<span class="placeholder">Your spoken words will appear here in real time…</span>';
-  resultsCard.classList.remove('visible');
+  transcriptEl.innerHTML = '<span class="placeholder">Your spoken words will appear here in real time…</span>';
+  resetResults();
   renderPassage();
 }
 
-// ─────────────────────────────────────────────
-// Text normalization helpers
-// ─────────────────────────────────────────────
-function normalizeWord(w) {
-  return w.toLowerCase().replace(/[^a-z0-9']/g, '');
+function resetResults() {
+  resultsCard.classList.remove('visible');
+  replayRow.style.display = 'none';
 }
 
-function tokenize(text) {
-  return text.split(/\s+/).filter(Boolean).map(normalizeWord).filter(w => w.length > 0);
+// ═══════════════════════════════════════════════════════════
+//  RECORD TIMER (clock display while recording)
+// ═══════════════════════════════════════════════════════════
+function startRecordTimer() {
+  recordSeconds = 0;
+  recordInterval = setInterval(() => {
+    recordSeconds++;
+    const m = String(Math.floor(recordSeconds / 60)).padStart(1,'0');
+    const s = String(recordSeconds % 60).padStart(2,'0');
+    statusText.textContent = `🔴 Recording  ${m}:${s}  — read the passage aloud`;
+  }, 1000);
 }
 
-// ─────────────────────────────────────────────
-// Word-level Longest Common Subsequence
-// Returns a Set of matched ORIGINAL indices
-// ─────────────────────────────────────────────
+function stopRecordTimer() {
+  if (recordInterval) { clearInterval(recordInterval); recordInterval = null; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TEXT ANALYSIS
+// ═══════════════════════════════════════════════════════════
+function normalizeWord(w) { return w.toLowerCase().replace(/[^a-z0-9']/g,''); }
+function tokenize(text)   { return text.split(/\s+/).filter(Boolean).map(normalizeWord).filter(w => w.length > 0); }
+
 function wordLCS(orig, trans) {
   const m = orig.length, n = trans.length;
-  // Build DP table
-  const dp = new Uint16Array((m + 1) * (n + 1));
-  const idx = (i, j) => i * (n + 1) + j;
-
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[idx(i, j)] = orig[i-1] === trans[j-1]
-        ? dp[idx(i-1, j-1)] + 1
-        : Math.max(dp[idx(i-1, j)], dp[idx(i, j-1)]);
-
-  // Backtrack
+  const dp = new Uint16Array((m+1)*(n+1));
+  const I  = (i,j) => i*(n+1)+j;
+  for (let i=1;i<=m;i++)
+    for (let j=1;j<=n;j++)
+      dp[I(i,j)] = orig[i-1]===trans[j-1] ? dp[I(i-1,j-1)]+1 : Math.max(dp[I(i-1,j)],dp[I(i,j-1)]);
   const matched = new Set();
-  let i = m, j = n;
-  while (i > 0 && j > 0) {
-    if (orig[i-1] === trans[j-1]) {
-      matched.add(i - 1);
-      i--; j--;
-    } else if (dp[idx(i-1, j)] >= dp[idx(i, j-1)]) {
-      i--;
-    } else {
-      j--;
-    }
+  let i=m, j=n;
+  while (i>0 && j>0) {
+    if (orig[i-1]===trans[j-1]) { matched.add(i-1); i--; j--; }
+    else if (dp[I(i-1,j)] >= dp[I(i,j-1)]) i--;
+    else j--;
   }
-  return { matched, lcsLen: dp[idx(m, n)] };
+  return { matched, lcsLen: dp[I(m,n)] };
 }
 
-// ─────────────────────────────────────────────
-// Show results
-// ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+//  SHOW RESULTS
+// ═══════════════════════════════════════════════════════════
 function showResults(transcript) {
   const displayWords = currentPassage.text.split(/\s+/).filter(Boolean);
   const origNorm     = displayWords.map(normalizeWord);
@@ -675,71 +759,194 @@ function showResults(transcript) {
 
   const { matched, lcsLen } = wordLCS(origNorm, transNorm);
 
-  const total    = origNorm.length;
-  const correct  = lcsLen;
-  const pct      = Math.round((correct / total) * 100);
+  const total   = origNorm.length;
+  const correct = lcsLen;
+  const pct     = Math.round((correct / total) * 100);
 
   // WPM
   let wpm = '—';
   if (startTime) {
     const mins = (Date.now() - startTime) / 60000;
-    wpm = Math.round(transNorm.length / mins);
+    if (mins > 0) wpm = Math.round(transNorm.length / mins);
   }
 
   // Grade
-  let grade, gradeClass;
-  if      (pct >= 95) { grade = 'A+'; gradeClass = 'grade-A'; }
-  else if (pct >= 90) { grade = 'A';  gradeClass = 'grade-A'; }
-  else if (pct >= 80) { grade = 'B';  gradeClass = 'grade-B'; }
-  else if (pct >= 70) { grade = 'C';  gradeClass = 'grade-C'; }
-  else if (pct >= 60) { grade = 'D';  gradeClass = 'grade-D'; }
-  else                { grade = 'F';  gradeClass = 'grade-F'; }
+  const [grade, gCls] =
+    pct >= 95 ? ['A+','grade-Ap'] :
+    pct >= 90 ? ['A', 'grade-A']  :
+    pct >= 80 ? ['B', 'grade-B']  :
+    pct >= 70 ? ['C', 'grade-C']  :
+    pct >= 60 ? ['D', 'grade-D']  : ['F','grade-F'];
 
   gradeBadge.textContent = grade;
-  gradeBadge.className   = `grade-badge ${gradeClass}`;
-
-  // Scores
+  gradeBadge.className   = `grade-badge ${gCls}`;
   scoreAccuracy.textContent = `${pct}%`;
   scoreWords.textContent    = `${correct}/${total}`;
   scoreWPM.textContent      = wpm;
 
-  // Bar
+  accuracyBar.style.width =
+    pct >= 80 ? `${pct}%; background:linear-gradient(90deg,#10b981,#059669)` :
+    `${pct}%`;
+  accuracyBar.style.background =
+    pct >= 80 ? 'linear-gradient(90deg,#10b981,#059669)' :
+    pct >= 60 ? 'linear-gradient(90deg,#f59e0b,#d97706)' :
+                'linear-gradient(90deg,#f87171,#dc2626)';
   accuracyBar.style.width = `${pct}%`;
-  if (pct >= 80)      accuracyBar.style.background = 'linear-gradient(90deg,#10b981,#059669)';
-  else if (pct >= 60) accuracyBar.style.background = 'linear-gradient(90deg,#f59e0b,#d97706)';
-  else                accuracyBar.style.background = 'linear-gradient(90deg,#f87171,#dc2626)';
 
-  // Word analysis chips
+  // Word chips
   wordAnalysis.innerHTML = '';
   displayWords.forEach((w, i) => {
-    const span = document.createElement('span');
-    span.className = `wr ${matched.has(i) ? 'match' : 'miss'}`;
-    span.textContent = w;
-    if (!matched.has(i)) span.title = 'Missed or mispronounced';
-    wordAnalysis.appendChild(span);
+    const isMatch = matched.has(i);
+    const wrap = document.createElement('span');
+    wrap.className = `wr ${isMatch ? 'match' : 'miss'}`;
+
+    const txt = document.createElement('span');
+    txt.textContent = w;
+    wrap.appendChild(txt);
+
+    if (!isMatch) {
+      const cleanWord = normalizeWord(w);
+
+      const ttsBtn = document.createElement('button');
+      ttsBtn.className = 'wr-icon';
+      ttsBtn.title = 'Hear correct pronunciation';
+      ttsBtn.textContent = '🔊';
+      ttsBtn.onclick = (e) => { e.stopPropagation(); ttsSpeak(cleanWord, 1); };
+
+      const practiceBtn = document.createElement('button');
+      practiceBtn.className = 'wr-icon';
+      practiceBtn.title = 'Practice this word';
+      practiceBtn.textContent = '🎤';
+      practiceBtn.onclick = (e) => { e.stopPropagation(); openModal(cleanWord); };
+
+      wrap.appendChild(ttsBtn);
+      wrap.appendChild(practiceBtn);
+    }
+    wordAnalysis.appendChild(wrap);
   });
 
   // Highlight passage
   renderPassage(matched);
 
   // Tip
-  const tips = {
-    high: '🌟 Excellent work! You read with great accuracy. Keep it up!',
-    good: '👍 Good job! Try reading a little more slowly to catch the words you missed.',
-    okay: '📖 Keep practising! Focus on the red words and try again.',
-    low:  '💪 Don\'t give up! Try reading the passage quietly first, then record again.'
-  };
-  tipBox.textContent = pct >= 90 ? tips.high : pct >= 75 ? tips.good : pct >= 55 ? tips.okay : tips.low;
+  tipBox.textContent =
+    pct >= 95 ? '🌟 Outstanding! You read with near-perfect accuracy. Excellent work!' :
+    pct >= 85 ? '👍 Great job! A little more practice on the highlighted words and you\'ll nail it.' :
+    pct >= 70 ? '📖 Good effort! Focus on the red words — click 🔊 to hear them, then 🎤 to practise.' :
+                '💪 Keep going! Try listening to each missed word and record your own attempt to compare.';
 
-  // Show card and scroll into view
+  // Replay audio
+  if (recordingBlob) {
+    if (replayBlobUrl) URL.revokeObjectURL(replayBlobUrl);
+    replayBlobUrl = URL.createObjectURL(recordingBlob);
+    replayAudio.src = replayBlobUrl;
+    replayRow.style.display = 'flex';
+  }
+
   resultsCard.classList.add('visible');
-  setTimeout(() => resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  setTimeout(() => resultsCard.scrollIntoView({ behavior:'smooth', block:'start' }), 80);
 }
 
-// ─────────────────────────────────────────────
-// Boot
-// ─────────────────────────────────────────────
-renderSelector();
+// ═══════════════════════════════════════════════════════════
+//  TTS
+// ═══════════════════════════════════════════════════════════
+function ttsSpeak(word, rate) {
+  if (!hasTTS) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(word);
+  utt.lang  = 'en-US';
+  utt.rate  = rate;
+  utt.pitch = 1;
+  window.speechSynthesis.speak(utt);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PRACTICE MODAL
+// ═══════════════════════════════════════════════════════════
+function openModal(word) {
+  practiceWordStr = word;
+  practiceWordDisplay.textContent = word;
+  // Reset player
+  practicePlayer.style.display = 'none';
+  practicePlayer.src = '';
+  if (practiceBlobUrl) { URL.revokeObjectURL(practiceBlobUrl); practiceBlobUrl = null; }
+  practiceRecBtn.innerHTML = '🎤 Record';
+  practiceRecInd.classList.remove('show');
+  practiceTimerTxt.textContent = '';
+  practiceIsRecording = false;
+  practiceModal.classList.add('open');
+  // Auto-play TTS so user hears the target immediately
+  setTimeout(() => ttsSpeak(word, 1), 300);
+}
+
+function closeModal() {
+  if (practiceIsRecording) stopPracticeRec();
+  practiceModal.classList.remove('open');
+  window.speechSynthesis.cancel();
+}
+
+// Click outside modal card to close
+practiceModal.addEventListener('click', e => { if (e.target === practiceModal) closeModal(); });
+
+function speakPracticeWord(rate) { ttsSpeak(practiceWordStr, rate); }
+
+async function togglePracticeRec() {
+  if (practiceIsRecording) { stopPracticeRec(); return; }
+
+  if (!hasMediaRecorder) {
+    alert('Audio recording is not supported in this browser.');
+    return;
+  }
+
+  try {
+    practiceStream   = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime       = getMimeType();
+    practiceRecorder = mime ? new MediaRecorder(practiceStream, { mimeType: mime })
+                            : new MediaRecorder(practiceStream);
+    const chunks     = [];
+    practiceRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    practiceRecorder.onstop = () => {
+      const blob = new Blob(chunks, { type: practiceRecorder.mimeType || 'audio/webm' });
+      if (practiceBlobUrl) URL.revokeObjectURL(practiceBlobUrl);
+      practiceBlobUrl = URL.createObjectURL(blob);
+      practicePlayer.src     = practiceBlobUrl;
+      practicePlayer.style.display = 'block';
+      if (practiceStream) { practiceStream.getTracks().forEach(t => t.stop()); practiceStream = null; }
+    };
+    practiceRecorder.start(100);
+    practiceIsRecording = true;
+    practiceRecBtn.innerHTML = '⏹ Stop';
+    practiceRecInd.classList.add('show');
+
+    // countdown timer
+    practiceSecsLeft = 5;
+    practiceTimerTxt.textContent = `${practiceSecsLeft}s`;
+    practiceTimerInt = setInterval(() => {
+      practiceSecsLeft--;
+      practiceTimerTxt.textContent = practiceSecsLeft > 0 ? `${practiceSecsLeft}s` : '';
+      if (practiceSecsLeft <= 0) stopPracticeRec();
+    }, 1000);
+
+  } catch(err) {
+    console.error('Practice record error:', err);
+    alert('Could not access microphone: ' + err.message);
+  }
+}
+
+function stopPracticeRec() {
+  if (practiceTimerInt) { clearInterval(practiceTimerInt); practiceTimerInt = null; }
+  if (practiceRecorder && practiceRecorder.state !== 'inactive') practiceRecorder.stop();
+  practiceIsRecording = false;
+  practiceRecBtn.innerHTML = '🎤 Record again';
+  practiceRecInd.classList.remove('show');
+  practiceTimerTxt.textContent = '';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════════
+renderThemeTabs();
+renderPassageGrid();
 renderPassage();
 </script>
 </body>
