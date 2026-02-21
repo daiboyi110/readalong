@@ -586,6 +586,7 @@ function buildRecognition() {
     recordBtn.classList.add('recording');
     recordBtn.innerHTML = '⏹';
     statusText.classList.add('live');
+    statusText.textContent = '🔴 Recording — read the passage aloud';
     startRecordTimer();
   };
 
@@ -620,17 +621,17 @@ function buildRecognition() {
     }
   };
 
-  // On iOS each r.start() re-acquires the mic, so use a longer delay to let the
-  // system banner slide away before the next session begins.
+  // On iOS each start() re-acquires the mic. Use a longer delay so the
+  // system banner can slide away, and create a FRESH instance each time
+  // (iOS doesn't reliably allow restarting the same recognition object).
   r.onend = () => {
     if (!isRecording) return;
     const delay = isIOS ? 1000 : 250;
-    if (isIOS) {
-      statusText.textContent = '↺ Resuming… keep reading';
-    }
+    if (isIOS) statusText.textContent = '↺ Resuming… keep reading';
     setTimeout(() => {
       if (!isRecording) return;
-      try { r.start(); }
+      recognition = buildRecognition(); // fresh instance required on iOS
+      try { recognition.start(); }
       catch(_) {}
     }, delay);
   };
@@ -656,8 +657,9 @@ async function startRecording() {
 
   finalText     = '';
   recordingBlob = null;
-  transcriptEl.innerHTML = '<span class="placeholder">Requesting microphone…</span>';
-  statusText.textContent  = 'Requesting microphone access…';
+  transcriptEl.innerHTML = '<span class="placeholder">Starting…</span>';
+  statusText.textContent  = isIOS ? 'Tap Allow when your browser asks for mic access…'
+                                  : 'Requesting microphone access…';
   resetResults();
 
   // ── Step 1: Single getUserMedia call → one permission dialog covers everything ──
@@ -701,6 +703,9 @@ async function startRecording() {
     isRecording = true;
     startTime   = Date.now();
     transcriptEl.innerHTML = '<span class="placeholder">Listening… read aloud now</span>';
+    // onstart fires once the browser actually has mic access and updates statusText.
+    // On iOS there can be a visible gap before onstart, so show a clear interim message.
+    if (isIOS) statusText.textContent = '📱 Allow mic access if asked, then start reading…';
   } catch(err) {
     statusText.textContent = `Could not start: ${err.message}`;
     if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
