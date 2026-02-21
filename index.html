@@ -504,7 +504,13 @@ const hasTTS               = !!window.speechSynthesis;
 const isIOS                = /iPad|iPhone|iPod/.test(navigator.userAgent);
 const isMobile             = isIOS || /Android/i.test(navigator.userAgent);
 
-if (!SpeechRecognitionAPI) {
+// File:// protocol blocks speech recognition entirely — must be served over HTTPS
+if (location.protocol === 'file:') {
+  browserNotice.style.display = 'block';
+  browserNotice.innerHTML = '⚠️ This app must be opened from a web address, not a local file. '
+    + 'Open it at <a href="https://daiboyi110.github.io/readalong/" style="color:#92400e;font-weight:700;">https://daiboyi110.github.io/readalong/</a>';
+  recordBtn.disabled = true;
+} else if (!SpeechRecognitionAPI) {
   browserNotice.style.display = 'block';
   browserNotice.innerHTML = isIOS
     ? '⚠️ On iPhone/iPad, use <strong>Safari</strong> (iOS 16+). Speech recognition is not available in Chrome or Firefox on iOS.'
@@ -513,7 +519,7 @@ if (!SpeechRecognitionAPI) {
 } else if (isMobile) {
   browserNotice.style.display = 'block';
   browserNotice.innerHTML = isIOS
-    ? '📱 iPhone/iPad: Tap <strong>Allow</strong> when asked for mic access. The <strong>orange dot</strong> at the top of your screen is normal — it just means the mic is on.'
+    ? '📱 iPhone/iPad (Safari only): Tap <strong>Allow</strong> when asked for mic access. The orange dot at the top means the mic is on — that\'s normal.'
     : '📱 Android: When asked, tap <strong>Allow</strong> for microphone access. Chrome works best.';
 }
 
@@ -582,7 +588,10 @@ function buildRecognition() {
   r.lang            = 'en-US';
   r.maxAlternatives = 1;
 
+  let didStart = false; // tracks whether onstart ever fired for this instance
+
   r.onstart = () => {
+    didStart = true;
     recordBtn.classList.add('recording');
     recordBtn.innerHTML = '⏹';
     statusText.classList.add('live');
@@ -626,6 +635,18 @@ function buildRecognition() {
   // (iOS doesn't reliably allow restarting the same recognition object).
   r.onend = () => {
     if (!isRecording) return;
+
+    // Silent failure: onend fired but onstart NEVER fired → mic was blocked
+    if (!didStart) {
+      isRecording = false;
+      resetRecordBtn();
+      stopRecordTimer();
+      statusText.textContent = isIOS
+        ? '🚫 Microphone blocked. On your iPhone: Settings → Safari → Microphone → set this site to Allow. Then reload the page and try again.'
+        : '🚫 Microphone access was blocked. Click the 🔒 lock icon in your address bar, set Microphone to Allow, then try again.';
+      return;
+    }
+
     const delay = isIOS ? 1000 : 250;
     if (isIOS) statusText.textContent = '↺ Resuming… keep reading';
     setTimeout(() => {
