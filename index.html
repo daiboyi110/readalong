@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ReadAlong — Reading Accuracy Trainer</title>
+  <title>ReadAlong  -  Reading Accuracy Trainer</title>
   <style>
     :root {
       --primary:       #5b21b6;
@@ -288,7 +288,7 @@
   <!-- Transcript -->
   <div class="card">
     <div class="card-label">Live Transcript</div>
-    <div id="transcriptText"><span class="placeholder">Your spoken words will appear here in real time…</span></div>
+    <div id="transcriptText"><span class="placeholder">Your spoken words will appear here in real time...</span></div>
   </div>
 
   <!-- Results -->
@@ -306,9 +306,9 @@
 
     <!-- Scores -->
     <div class="score-row">
-      <div class="score-box"><div class="score-value" id="scoreAccuracy">—</div><div class="score-label">Accuracy</div></div>
-      <div class="score-box"><div class="score-value" id="scoreWords">—</div><div class="score-label">Words Correct</div></div>
-      <div class="score-box"><div class="score-value" id="scoreWPM">—</div><div class="score-label">Words / Min</div></div>
+      <div class="score-box"><div class="score-value" id="scoreAccuracy"> - </div><div class="score-label">Accuracy</div></div>
+      <div class="score-box"><div class="score-value" id="scoreWords"> - </div><div class="score-label">Words Correct</div></div>
+      <div class="score-box"><div class="score-value" id="scoreWPM"> - </div><div class="score-label">Words / Min</div></div>
     </div>
 
     <div class="bar-wrap"><div id="accuracyBar"></div></div>
@@ -322,7 +322,7 @@
         </div>
         <div class="legend-item">
           <div class="legend-dot" style="background:var(--danger-bg);border:1px solid #fca5a5;"></div>
-          Missed — <strong>🔊</strong> hear correct &nbsp;|&nbsp; <strong>🎤</strong> practice it
+          Missed  -  <strong>🔊</strong> hear correct &nbsp;|&nbsp; <strong>🎤</strong> practice it
         </div>
       </div>
       <div class="wr-wrap" id="wordAnalysis"></div>
@@ -360,7 +360,7 @@
     <div class="modal-section">
       <div class="modal-sec-label">
         🎤 Check Your Pronunciation
-        <span id="practiceListening"><span class="rec-dot"></span> Listening…</span>
+        <span id="practiceListening"><span class="rec-dot"></span> Listening...</span>
       </div>
       <div class="btn-row2">
         <button class="btn-danger" id="practiceRecBtn" onclick="startWordCheck()">🎤 Say it</button>
@@ -1259,7 +1259,7 @@ const THEMES = [
 // ═══════════════════════════════════════════════════════════
 let currentThemeId  = THEMES[0].id;
 let currentPassage  = THEMES[0].passages[0];
-let themePages      = {};   // { themeId: pageIndex } — which set of 3 passages is shown
+let themePages      = {};   // { themeId: pageIndex }  -  which set of 3 passages is shown
 let recognition     = null;
 let isRecording     = false;
 let finalText       = '';
@@ -1277,7 +1277,7 @@ let replayBlobUrl   = null;
 // iOS proactive restart (avoid forced ~60s timeout)
 let proactiveRestartTimer = null;
 
-// Sentence-by-sentence mode (mobile — avoids iOS session timeout)
+// Sentence-by-sentence mode (mobile  -  avoids iOS session timeout)
 let sentenceMode  = false;
 let sentences     = [];
 let sentenceIdx   = 0;
@@ -1330,7 +1330,7 @@ const hasTTS               = !!window.speechSynthesis;
 const isIOS                = /iPad|iPhone|iPod/.test(navigator.userAgent);
 const isMobile             = isIOS || /Android/i.test(navigator.userAgent);
 
-// On mobile, file:// blocks speech recognition — must use HTTPS. Desktop Chrome/Edge is fine.
+// On mobile, file:// blocks speech recognition  -  must use HTTPS. Desktop Chrome/Edge is fine.
 if (location.protocol === 'file:' && isMobile) {
   browserNotice.style.display = 'block';
   browserNotice.innerHTML = '⚠️ On mobile, this app must be opened from a web address. '
@@ -1406,7 +1406,7 @@ function updatePassages(themeId) {
   renderPassage();
   resetResults();
   finalText = '';
-  transcriptEl.innerHTML = '<span class="placeholder">Your spoken words will appear here in real time…</span>';
+  transcriptEl.innerHTML = '<span class="placeholder">Your spoken words will appear here in real time...</span>';
 }
 
 function selectPassage(id) {
@@ -1418,7 +1418,7 @@ function selectPassage(id) {
   resetResults();
   // reset transcript
   finalText = '';
-  transcriptEl.innerHTML = '<span class="placeholder">Your spoken words will appear here in real time…</span>';
+  transcriptEl.innerHTML = '<span class="placeholder">Your spoken words will appear here in real time...</span>';
 }
 
 function renderPassage(matchedSet) {
@@ -1444,7 +1444,7 @@ function buildRecognition() {
   r.maxAlternatives = 1;
 
   let didStart     = false; // tracks whether onstart ever fired for this instance
-  let interimBuffer = '';   // latest interim text — rescued into finalText on session end
+  let interimBuffer = '';   // latest interim text  -  rescued into finalText on session end
 
   r.onstart = () => {
     didStart = true;
@@ -1454,7 +1454,7 @@ function buildRecognition() {
     statusText.classList.add('live');
     startRecordTimer();
 
-    // iOS: proactively restart at 45s — safely before iOS's hard ~60s session limit.
+    // iOS: proactively restart at 45s  -  safely before iOS's hard ~60s session limit.
     // This way WE control the restart timing and avoid losing the last chunk of speech.
     if (isIOS) {
       clearTimeout(proactiveRestartTimer);
@@ -1479,8 +1479,8 @@ function buildRecognition() {
   };
 
   r.onerror = (e) => {
-    if (e.error === 'no-speech') return; // silence timeout — harmless, onend will restart
-    if (e.error === 'network')   return; // transient on mobile — onend will restart
+    if (e.error === 'no-speech') return; // silence timeout  -  harmless, onend will restart
+    if (e.error === 'network')   return; // transient on mobile  -  onend will restart
     if (e.error === 'audio-capture') {
       statusText.textContent = '🎙️ Microphone not found. Check your device settings.';
       isRecording = false; resetRecordBtn(); return;
@@ -1522,7 +1522,7 @@ function buildRecognition() {
       recordBtn.classList.remove('recording');
       recordBtn.classList.add('pausing');
       recordBtn.innerHTML = '↺';
-      statusText.textContent = '↺ Mic refreshing — keep reading in a moment…';
+      statusText.textContent = '↺ Mic refreshing  -  keep reading in a moment...';
     }
 
     const delay = isIOS ? 600 : 250;
@@ -1602,7 +1602,7 @@ function recordSentence(idx) {
     recordBtn.classList.add('recording');
     recordBtn.innerHTML = '⏹';
     statusText.classList.add('live');
-    statusText.textContent = `🔴 Sentence ${idx + 1} of ${sentences.length} — read aloud`;
+    statusText.textContent = `🔴 Sentence ${idx + 1} of ${sentences.length}  -  read aloud`;
   };
 
   r.onresult = (e) => {
@@ -1661,7 +1661,7 @@ function recordSentence(idx) {
     recordBtn.classList.remove('recording');
     recordBtn.classList.add('pausing');
     recordBtn.innerHTML = '↺';
-    statusText.textContent = `↺ Sentence ${idx + 1} done — pause, then read sentence ${nextIdx + 1}…`;
+    statusText.textContent = `↺ Sentence ${idx + 1} done  -  pause, then read sentence ${nextIdx + 1}...`;
     const progEl = document.getElementById('sentenceProgress');
     if (progEl) progEl.textContent = `Sentence ${nextIdx + 1} of ${sentences.length}`;
 
@@ -1702,7 +1702,7 @@ function finishSentences() {
   setTimeout(() => {
     const full = finalText.trim();
     if (full) showResults(full);
-    else statusText.textContent = 'No speech detected — please try again.';
+    else statusText.textContent = 'No speech detected  -  please try again.';
   }, 800);
 }
 
@@ -1714,19 +1714,19 @@ async function startRecording() {
 
   finalText     = '';
   recordingBlob = null;
-  transcriptEl.innerHTML = '<span class="placeholder">Starting…</span>';
-  statusText.textContent  = isIOS ? 'Tap Allow when your browser asks for mic access…'
-                                  : 'Requesting microphone access…';
+  transcriptEl.innerHTML = '<span class="placeholder">Starting...</span>';
+  statusText.textContent  = isIOS ? 'Tap Allow when your browser asks for mic access...'
+                                  : 'Requesting microphone access...';
   resetResults();
 
-  // Skip getUserMedia on iOS — prevents double permission dialog on every restart
+  // Skip getUserMedia on iOS  -  prevents double permission dialog on every restart
   if (hasMediaRecorder && !isIOS) {
     try {
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
     } catch(err) {
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         statusText.textContent = '🚫 Microphone access denied. Click the 🔒 icon in your address bar to allow it.';
-        transcriptEl.innerHTML = '<span class="placeholder">…</span>';
+        transcriptEl.innerHTML = '<span class="placeholder">...</span>';
         return;
       }
       micStream = null;
@@ -1755,8 +1755,8 @@ async function startRecording() {
     recognition.start();
     isRecording = true;
     startTime   = Date.now();
-    transcriptEl.innerHTML = '<span class="placeholder">Listening… read aloud now</span>';
-    if (isIOS) statusText.textContent = '📱 Allow mic access if asked, then start reading…';
+    transcriptEl.innerHTML = '<span class="placeholder">Listening... read aloud now</span>';
+    if (isIOS) statusText.textContent = '📱 Allow mic access if asked, then start reading...';
   } catch(err) {
     statusText.textContent = `Could not start: ${err.message}`;
     if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
@@ -1791,7 +1791,7 @@ function stopRecording() {
   setTimeout(() => {
     const full = finalText.trim();
     if (full) showResults(full);
-    else       statusText.textContent = 'No speech detected — please try again.';
+    else       statusText.textContent = 'No speech detected  -  please try again.';
   }, 800);
 }
 
@@ -1819,7 +1819,7 @@ function resetAll() {
   resetRecordBtn();
   document.getElementById('sentenceNav').classList.remove('show');
   statusText.textContent = 'Click the microphone to start reading aloud';
-  transcriptEl.innerHTML = '<span class="placeholder">Your spoken words will appear here in real time…</span>';
+  transcriptEl.innerHTML = '<span class="placeholder">Your spoken words will appear here in real time...</span>';
   resetResults();
   renderPassage();
 }
@@ -1838,7 +1838,7 @@ function startRecordTimer() {
     recordSeconds++;
     const m = String(Math.floor(recordSeconds / 60)).padStart(1,'0');
     const s = String(recordSeconds % 60).padStart(2,'0');
-    statusText.textContent = `🔴 Recording  ${m}:${s}  — read the passage aloud`;
+    statusText.textContent = `🔴 Recording  ${m}:${s}   -  read the passage aloud`;
   }, 1000);
 }
 
@@ -1884,7 +1884,7 @@ function showResults(transcript) {
   const pct     = Math.round((correct / total) * 100);
 
   // WPM
-  let wpm = '—';
+  let wpm = ' - ';
   if (startTime) {
     const mins = (Date.now() - startTime) / 60000;
     if (mins > 0) wpm = Math.round(transNorm.length / mins);
@@ -1952,7 +1952,7 @@ function showResults(transcript) {
   tipBox.textContent =
     pct >= 95 ? '🌟 Outstanding! You read with near-perfect accuracy. Excellent work!' :
     pct >= 85 ? '👍 Great job! A little more practice on the highlighted words and you\'ll nail it.' :
-    pct >= 70 ? '📖 Good effort! Focus on the red words — click 🔊 to hear them, then 🎤 to practise.' :
+    pct >= 70 ? '📖 Good effort! Focus on the red words  -  click 🔊 to hear them, then 🎤 to practise.' :
                 '💪 Keep going! Try listening to each missed word and record your own attempt to compare.';
 
   // Replay audio
@@ -1990,7 +1990,7 @@ function openModal(word) {
   practiceWordDisplay.textContent = word;
   // Fetch IPA pronunciation
   const phonEl = document.getElementById('phoneticsDisplay');
-  phonEl.textContent = '…';
+  phonEl.textContent = '...';
   fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word))
     .then(r => r.ok ? r.json() : Promise.reject())
     .then(data => {
@@ -2057,7 +2057,7 @@ function startWordCheck() {
       resultEl.textContent = '✓ Correct! Great pronunciation.';
     } else {
       resultEl.className = 'word-result wrong';
-      resultEl.textContent = `✗ Heard: "${heard}" — try again`;
+      resultEl.textContent = `✗ Heard: "${heard}"  -  try again`;
     }
     practiceRecBtn.disabled = false;
     practiceRecBtn.innerHTML = '🎤 Try again';
@@ -2083,7 +2083,7 @@ function startWordCheck() {
     if (practiceIsRecording) {
       // no-speech: nothing was said
       resultEl.className = 'word-result wrong';
-      resultEl.textContent = 'Nothing heard — please speak clearly and try again.';
+      resultEl.textContent = 'Nothing heard  -  please speak clearly and try again.';
       practiceRecBtn.innerHTML = '🎤 Try again';
       practiceIsRecording = false;
     }
