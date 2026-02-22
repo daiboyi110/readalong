@@ -194,7 +194,8 @@
     .modal-card { background:#fff; border-radius:20px; padding:28px; width:100%; max-width:420px; box-shadow:0 24px 64px rgba(0,0,0,.28); }
     .modal-hdr  { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
     .modal-subtitle { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
-    .modal-word { font-family:Georgia,serif; font-size:2.1rem; font-weight:700; color:var(--primary); margin:4px 0 22px; }
+    .modal-word { font-family:Georgia,serif; font-size:2.1rem; font-weight:700; color:var(--primary); margin:4px 0 4px; }
+    .modal-phonetic { font-size:.95rem; color:var(--muted); font-style:italic; margin-bottom:18px; min-height:1.2em; }
     .modal-close { background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--muted); line-height:1; }
     .modal-close:hover { color:var(--text); }
     .modal-section { margin-bottom:20px; }
@@ -341,6 +342,7 @@
       <div>
         <div class="modal-subtitle">Word Practice</div>
         <div class="modal-word" id="practiceWordDisplay"></div>
+        <div class="modal-phonetic" id="phoneticsDisplay"></div>
       </div>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
@@ -1986,6 +1988,18 @@ let wordCheckRec = null;
 function openModal(word) {
   practiceWordStr = word;
   practiceWordDisplay.textContent = word;
+  // Fetch IPA pronunciation
+  const phonEl = document.getElementById('phoneticsDisplay');
+  phonEl.textContent = '…';
+  fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word))
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(data => {
+      const text = (data[0]?.phonetics || []).find(p => p.text)?.text
+                || data[0]?.phonetic
+                || '';
+      phonEl.textContent = text || '';
+    })
+    .catch(() => { phonEl.textContent = ''; });
   practiceRecBtn.innerHTML = '🎤 Say it';
   practiceRecBtn.disabled = false;
   document.getElementById('practiceListening').classList.remove('show');
