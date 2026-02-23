@@ -54,14 +54,23 @@
     }
 
     /* ── Layout ─────────────────────────────────── */
-    .container { max-width:880px; margin:0 auto; padding:24px 16px 52px; display:flex; flex-direction:column; gap:20px; }
+    .container { max-width:1160px; margin:0 auto; padding:24px 16px 52px; display:flex; flex-direction:column; gap:20px; }
+
+    /* ── Two-column main row ────────────────────── */
+    .main-row  { display:flex; gap:20px; align-items:flex-start; }
+    .col-left  { flex:0 0 340px; display:flex; flex-direction:column; gap:20px; }
+    .col-right { flex:1; min-width:0; display:flex; flex-direction:column; gap:20px; }
+    @media(max-width:780px){
+      .main-row { flex-direction:column; }
+      .col-left { flex:none; width:100%; }
+    }
 
     /* ── Card ───────────────────────────────────── */
     .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px 26px; box-shadow:0 2px 14px rgba(91,33,182,.07); }
     .card-label { font-size:.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:14px; }
 
     /* ── Passage grid ───────────────────────────── */
-    .passage-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:11px; }
+    .passage-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:11px; }
     .pcard {
       border:2px solid var(--border); border-radius:12px; padding:14px 16px;
       cursor:pointer; transition:all .2s; background:#fafafa;
@@ -260,32 +269,43 @@
 
 <div class="container">
 
-  <!-- Passage picker -->
-  <div class="card">
-    <div class="card-label" id="passageGridLabel">Choose a Passage</div>
-    <div class="passage-grid" id="passageGrid"></div>
-    <div id="updatePassagesBtn" style="margin-top:14px;text-align:center;"></div>
-  </div>
+  <div class="main-row">
 
-  <!-- Reading passage -->
-  <div class="card">
-    <div class="card-label">Reading Passage</div>
-    <div class="passage-title" id="passageTitle"></div>
-    <div id="passageText"></div>
-  </div>
-
-  <!-- Controls -->
-  <div class="card controls">
-    <button id="recordBtn" title="Start / Stop recording">🎤</button>
-    <div id="statusText">Click the microphone to start reading aloud</div>
-    <button class="ghost-btn" id="resetBtn">↺ Reset</button>
-    <div id="sentenceNav">
-      <div class="sentence-progress" id="sentenceProgress"></div>
-      <button class="ghost-btn" id="nextSentenceBtn" onclick="advanceSentenceManually()">Next sentence →</button>
+    <!-- LEFT: Passage picker -->
+    <div class="col-left">
+      <div class="card">
+        <div class="card-label" id="passageGridLabel">Choose a Passage</div>
+        <div class="passage-grid" id="passageGrid"></div>
+        <div id="updatePassagesBtn" style="margin-top:14px;text-align:center;"></div>
+      </div>
     </div>
-  </div>
 
-  <!-- Transcript -->
+    <!-- RIGHT: Reading passage + Controls -->
+    <div class="col-right">
+
+      <!-- Reading passage -->
+      <div class="card">
+        <div class="card-label">Reading Passage</div>
+        <div class="passage-title" id="passageTitle"></div>
+        <div id="passageText"></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="card controls">
+        <button id="recordBtn" title="Start / Stop recording">🎤</button>
+        <div id="statusText">Click the microphone to start reading aloud</div>
+        <button class="ghost-btn" id="resetBtn">↺ Reset</button>
+        <div id="sentenceNav">
+          <div class="sentence-progress" id="sentenceProgress"></div>
+          <button class="ghost-btn" id="nextSentenceBtn" onclick="advanceSentenceManually()">Next sentence →</button>
+        </div>
+      </div>
+
+    </div><!-- .col-right -->
+
+  </div><!-- .main-row -->
+
+  <!-- Transcript (full width) -->
   <div class="card">
     <div class="card-label">Live Transcript</div>
     <div id="transcriptText"><span class="placeholder">Your spoken words will appear here in real time...</span></div>
