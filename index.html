@@ -271,23 +271,12 @@
 
   <div class="main-row">
 
-    <!-- LEFT: Passage picker -->
+    <!-- LEFT: Passage picker + Controls -->
     <div class="col-left">
       <div class="card">
         <div class="card-label" id="passageGridLabel">Choose a Passage</div>
         <div class="passage-grid" id="passageGrid"></div>
         <div id="updatePassagesBtn" style="margin-top:14px;text-align:center;"></div>
-      </div>
-    </div>
-
-    <!-- RIGHT: Reading passage + Controls -->
-    <div class="col-right">
-
-      <!-- Reading passage -->
-      <div class="card">
-        <div class="card-label">Reading Passage</div>
-        <div class="passage-title" id="passageTitle"></div>
-        <div id="passageText"></div>
       </div>
 
       <!-- Controls -->
@@ -299,6 +288,17 @@
           <div class="sentence-progress" id="sentenceProgress"></div>
           <button class="ghost-btn" id="nextSentenceBtn" onclick="advanceSentenceManually()">Next sentence →</button>
         </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Reading passage -->
+    <div class="col-right">
+
+      <!-- Reading passage -->
+      <div class="card">
+        <div class="card-label">Reading Passage</div>
+        <div class="passage-title" id="passageTitle"></div>
+        <div id="passageText"></div>
       </div>
 
     </div><!-- .col-right -->
