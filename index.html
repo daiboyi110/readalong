@@ -1396,6 +1396,10 @@ const THEMES = [
       { id:'f119', title:'Aung San Suu Kyi Nobel Lecture', level:'medium', text:'Aung San Suu Kyi\'s Nobel Peace Prize lecture of 1995 was delivered more than four years after the prize was awarded, because she had been under house arrest in Burma and unable to travel to Oslo. When she finally delivered the lecture, she spoke of what she had learned in isolation: that separation from the world had deepened rather than diminished her commitment to the people of Burma and to the universal values of democracy and human rights. She argued that a just and lasting peace cannot be separated from democracy and human rights: where governments rule through fear and coercion rather than through the consent of the governed, the apparent peace is simply the silence of oppression.' },
       { id:'f120', title:'Aung San Suu Kyi Nobel Lecture', level:'hard', text:'Suu Kyi\'s 1995 Nobel lecture is a sophisticated philosophical argument about the relationship between peace, democracy, and human rights that goes beyond advocacy for any particular political situation. Drawing on Buddhist philosophy as well as Western political thought, she argues that genuine peace -- as distinct from mere absence of open violence -- requires the establishment of conditions in which human beings can flourish: political freedom, the rule of law, and the material conditions of decent life. Her analysis of the psychology of fear under authoritarian rule is particularly acute: she describes how pervasive fear corrodes the moral and civic fabric of a society, making ordinary people complicit in their own oppression through the small compromises that fear demands daily. The speech derives its authority in part from the fact that Suu Kyi had chosen, at considerable personal cost, to remain in Burma rather than go into comfortable exile, giving her reflections on courage and suffering the weight of lived experience.' }
     ]
+  },
+  {
+    id:'custom', name:'📝 My Script',
+    passages:[]
   }
 ];
 
@@ -1508,6 +1512,11 @@ function switchTheme(id) {
   if (isRecording) stopRecording();
   currentThemeId = id;
   const theme = THEMES.find(t => t.id === id);
+  if (id === 'custom') {
+    renderThemeTabs();
+    renderPassageGrid();
+    return;
+  }
   const page  = themePages[id] || 0;
   currentPassage = theme.passages[page * 3] || theme.passages[0];
   renderThemeTabs();
@@ -1517,7 +1526,35 @@ function switchTheme(id) {
 }
 
 function renderPassageGrid() {
-  const theme      = THEMES.find(t => t.id === currentThemeId);
+  const theme = THEMES.find(t => t.id === currentThemeId);
+  const btnEl = document.getElementById('updatePassagesBtn');
+
+  if (currentThemeId === 'custom') {
+    document.getElementById('passageGridLabel').textContent = 'My Script';
+    passageGrid.innerHTML = `
+      <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:10px;">
+        <label style="font-size:.82rem;font-weight:600;color:var(--muted);">Upload a .txt file</label>
+        <input type="file" id="scriptFileInput" accept=".txt"
+          style="font-size:.82rem;padding:6px;border:2px dashed var(--border);border-radius:8px;cursor:pointer;background:#fafafa;width:100%;">
+        <label style="font-size:.82rem;font-weight:600;color:var(--muted);">— or paste your text —</label>
+        <textarea id="scriptPasteArea" rows="6" placeholder="Paste your script here..."
+          style="width:100%;font-size:.88rem;padding:10px;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:inherit;"></textarea>
+        <button class="ghost-btn" onclick="loadCustomScript()" style="width:100%;">✓ Use This Script</button>
+      </div>
+    `;
+    btnEl.innerHTML = '';
+
+    document.getElementById('scriptFileInput').addEventListener('change', function() {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => { document.getElementById('scriptPasteArea').value = e.target.result; };
+      reader.readAsText(file);
+    });
+    return;
+  }
+
+  document.getElementById('passageGridLabel').textContent = 'Choose a Passage';
   const page       = themePages[currentThemeId] || 0;
   const perPage    = 3;
   const totalPages = Math.ceil(theme.passages.length / perPage);
@@ -1530,12 +1567,23 @@ function renderPassageGrid() {
     </div>
   `).join('');
 
-  const btnEl = document.getElementById('updatePassagesBtn');
   if (totalPages > 1) {
     btnEl.innerHTML = `<button class="ghost-btn" onclick="updatePassages('${currentThemeId}')">↻ New Passages &nbsp;<span style="font-size:.75rem;opacity:.7">Set ${page + 1} / ${totalPages}</span></button>`;
   } else {
     btnEl.innerHTML = '';
   }
+}
+
+function loadCustomScript() {
+  const text = (document.getElementById('scriptPasteArea')?.value || '').trim();
+  if (!text) { alert('Please paste or upload your script first.'); return; }
+  const customTheme = THEMES.find(t => t.id === 'custom');
+  customTheme.passages = [{ id:'custom_0', title:'My Script', level:'easy', text }];
+  currentPassage = customTheme.passages[0];
+  renderPassage();
+  resetResults();
+  finalText = '';
+  transcriptEl.innerHTML = '<span class="placeholder">Your spoken words will appear here in real time...</span>';
 }
 
 function updatePassages(themeId) {
